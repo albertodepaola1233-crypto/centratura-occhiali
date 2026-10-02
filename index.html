@@ -7,6 +7,7 @@
 <title>Centratura Occhiali</title>
 
 <style>
+
 * {
   box-sizing: border-box;
 }
@@ -36,27 +37,30 @@ h1 {
 }
 
 h2 {
-  margin-top: 25px;
+  margin-top: 24px;
 }
 
 .info {
-  background: #eef2ff;
-  padding: 15px;
+  padding: 16px;
   border-radius: 12px;
+  background: #eef2ff;
   line-height: 1.5;
+  margin-bottom: 18px;
 }
 
 .camera {
   position: relative;
-  margin-top: 20px;
-  background: black;
+  width: 100%;
+  background: #000;
   border-radius: 18px;
   overflow: hidden;
+  margin-top: 20px;
 }
 
 #video {
   display: block;
   width: 100%;
+  height: auto;
   transform: scaleX(-1);
 }
 
@@ -69,13 +73,17 @@ h2 {
   transform: scaleX(-1);
 }
 
-.guide {
+#cardCanvas {
+  display: none;
+}
+
+.face-guide {
   position: absolute;
   left: 25%;
-  top: 14%;
+  top: 13%;
   width: 50%;
-  height: 72%;
-  border: 2px dashed rgba(255,255,255,.8);
+  height: 74%;
+  border: 2px dashed rgba(255,255,255,.75);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -83,11 +91,11 @@ h2 {
 .card-guide {
   position: absolute;
   left: 20%;
-  top: 25%;
+  top: 28%;
   width: 60%;
-  height: 50%;
-  border: 3px solid white;
-  border-radius: 10px;
+  height: 44%;
+  border: 3px solid #facc15;
+  border-radius: 12px;
   display: none;
   pointer-events: none;
 }
@@ -125,7 +133,7 @@ h2 {
 .box {
   background: #f3f4f6;
   border-radius: 12px;
-  padding: 15px;
+  padding: 16px;
   text-align: center;
 }
 
@@ -137,11 +145,12 @@ h2 {
 
 .box strong {
   display: block;
-  font-size: 21px;
   margin-top: 6px;
+  font-size: 21px;
 }
 
 .progress {
+  width: 100%;
   height: 10px;
   background: #e5e7eb;
   border-radius: 20px;
@@ -158,10 +167,10 @@ h2 {
 
 button {
   width: 100%;
-  padding: 15px;
-  margin-top: 15px;
   border: 0;
   border-radius: 12px;
+  padding: 15px;
+  margin-top: 15px;
   background: #111827;
   color: white;
   font-size: 17px;
@@ -171,46 +180,39 @@ button {
 
 button:disabled {
   opacity: .5;
-}
-
-.secondary {
-  background: #6b7280;
+  cursor: not-allowed;
 }
 
 .result {
   display: none;
   margin-top: 20px;
   padding: 20px;
-  background: #f3f4f6;
   border-radius: 15px;
+  background: #f3f4f6;
 }
 
 .big {
   font-size: 32px;
   font-weight: bold;
-  margin: 5px 0 15px;
 }
 
 .small {
-  font-size: 13px;
   color: #6b7280;
+  font-size: 13px;
   line-height: 1.5;
-}
-
-.hidden {
-  display: none !important;
 }
 
 .notice {
   margin-top: 15px;
-  padding: 12px;
-  background: #fff7ed;
+  padding: 13px;
   border-radius: 10px;
+  background: #fff7ed;
   font-size: 13px;
   line-height: 1.5;
 }
 
 @media(max-width:700px) {
+
   .container {
     padding: 10px;
   }
@@ -218,7 +220,9 @@ button:disabled {
   .grid {
     grid-template-columns: 1fr;
   }
+
 }
+
 </style>
 </head>
 
@@ -231,14 +235,24 @@ button:disabled {
 <h1>Centratura Occhiali</h1>
 
 <div class="info">
-Questa procedura utilizza la fotocamera per stimare la posizione delle pupille.
-Per ottenere la scala in millimetri verrà utilizzata una carta bancaria standard
-da 85,60 mm di larghezza.
+
+<strong>Procedura di misurazione</strong>
+
+<br><br>
+
+Prima verrà utilizzata una carta bancaria standard
+da <strong>85,60 mm</strong> per creare la scala di misura.
+
+Poi la carta verrà rimossa e verranno misurate
+le pupille.
+
+<br><br>
+
+Durante la misurazione mantieni la testa dritta
+e guarda direttamente la fotocamera.
+
 </div>
 
-<!-- =========================
-     FOTOCAMERA
-========================= -->
 
 <div class="camera">
 
@@ -251,20 +265,29 @@ muted>
 
 <canvas id="canvas"></canvas>
 
-<div id="faceGuide" class="guide"></div>
+<canvas id="cardCanvas"></canvas>
 
-<div id="cardGuide" class="card-guide"></div>
+<div
+id="faceGuide"
+class="face-guide">
+</div>
+
+<div
+id="cardGuide"
+class="card-guide">
+</div>
 
 </div>
 
-<div id="status" class="status">
-Premi "Avvia" per iniziare.
+
+<div
+id="status"
+class="status">
+
+Premi "Avvia misurazione".
+
 </div>
 
-
-<!-- =========================
-     DATI LIVE
-========================= -->
 
 <div class="grid">
 
@@ -289,13 +312,13 @@ Premi "Avvia" per iniziare.
 <div class="grid">
 
 <div class="box">
-<span>Calibrazione</span>
-<strong id="calibrationState">—</strong>
+<span>Carta</span>
+<strong id="cardState">—</strong>
 </div>
 
 <div class="box">
-<span>Distanza</span>
-<strong id="distanceState">—</strong>
+<span>Scala</span>
+<strong id="scaleState">—</strong>
 </div>
 
 <div class="box">
@@ -320,222 +343,180 @@ class="progress-bar">
 id="startButton"
 onclick="startProcess()">
 
-Avvia centratura
+Avvia misurazione
 
 </button>
 
 
 <button
 id="stopButton"
-class="secondary"
 onclick="stopCamera()"
 disabled>
 
-Ferma
+Ferma fotocamera
 
 </button>
 
-
-<!-- =========================
-     CALIBRAZIONE
-========================= -->
 
 <div
 id="calibrationPanel"
 class="result">
 
-<h2>1. Calibrazione</h2>
+<h2>Calibrazione</h2>
 
 <p>
-Tieni una carta bancaria davanti al viso.
-La carta deve essere il più possibile parallela
-al viso e alla stessa altezza degli occhi.
+
+Tieni una carta bancaria davanti al viso,
+orizzontale e il più possibile alla stessa
+distanza degli occhi.
+
 </p>
 
-<strong>
-Larghezza standard utilizzata:
-85,60 mm
-</strong>
+<p>
 
-<div
-id="calibrationProgress"
-class="small"
-style="margin-top:12px;">
-In attesa...
+La carta deve essere completamente visibile
+e dentro l'inquadratura.
+
+</p>
+
+<div class="grid">
+
+<div class="box">
+<span>Larghezza rilevata</span>
+<strong id="cardWidth">—</strong>
 </div>
 
-<button
-id="calibrationButton"
-onclick="startCalibration()">
+<div class="box">
+<span>Scala</span>
+<strong id="pixelsMM">—</strong>
+</div>
 
-Avvia calibrazione
-
-</button>
+<div class="box">
+<span>Stabilità</span>
+<strong id="calibrationProgress">0%</strong>
+</div>
 
 </div>
 
+</div>
 
-<!-- =========================
-     PD
-========================= -->
 
 <div
 id="pdPanel"
 class="result">
 
-<h2>2. Misurazione PD</h2>
+<h2>Misurazione PD</h2>
 
 <p>
-Ora rimuovi la carta e guarda direttamente
-la fotocamera.
+
+Ora <strong>rimuovi la carta</strong>.
+
+Mantieni la stessa posizione davanti alla fotocamera.
+
 </p>
 
 <div class="grid">
 
 <div class="box">
+
 <span>PD totale</span>
+
 <strong id="pdTotal">—</strong>
+
 </div>
 
+
 <div class="box">
+
 <span>PD OD</span>
+
 <strong id="pdOD">—</strong>
+
 </div>
+
 
 <div class="box">
+
 <span>PD OS</span>
+
 <strong id="pdOS">—</strong>
-</div>
 
 </div>
 
-<div
+</div>
+
+<p
 id="pdProgress"
-class="small"
-style="margin-top:12px;">
-Preparazione...
-</div>
+class="small">
 
-</div>
+Preparazione della misurazione...
 
-
-<!-- =========================
-     ALTEZZE
-========================= -->
-
-<div
-id="heightPanel"
-class="result">
-
-<h2>3. Centratura in altezza</h2>
-
-<p>
-Adesso indossa la montatura che deve essere centrata.
-Guarda dritto verso la fotocamera e rimani fermo.
 </p>
 
-<div class="notice">
-La misura automatica dell'altezza dipende dalla visibilità
-e dalla geometria della montatura. Questa versione considera
-la posizione della pupilla e la geometria visibile della montatura
-come stima preliminare.
 </div>
 
-<div class="grid">
-
-<div class="box">
-<span>Altezza OD</span>
-<strong id="heightOD">—</strong>
-</div>
-
-<div class="box">
-<span>Altezza OS</span>
-<strong id="heightOS">—</strong>
-</div>
-
-<div class="box">
-<span>Qualità</span>
-<strong id="heightQuality">—</strong>
-</div>
-
-</div>
-
-<button
-onclick="startHeightMeasurement()">
-
-Misura altezza
-
-</button>
-
-</div>
-
-
-<!-- =========================
-     RISULTATO
-========================= -->
 
 <div
 id="finalPanel"
 class="result">
 
-<h2>Risultato centratura</h2>
+<h2>Risultato</h2>
 
 <div class="grid">
 
 <div class="box">
+
 <span>PD totale</span>
+
 <strong id="finalPD">—</strong>
+
 </div>
 
+
 <div class="box">
+
 <span>PD OD</span>
+
 <strong id="finalOD">—</strong>
+
 </div>
 
+
 <div class="box">
+
 <span>PD OS</span>
+
 <strong id="finalOS">—</strong>
-</div>
 
 </div>
 
-<div class="grid">
-
-<div class="box">
-<span>Altezza OD</span>
-<strong id="finalHeightOD">—</strong>
 </div>
 
-<div class="box">
-<span>Altezza OS</span>
-<strong id="finalHeightOS">—</strong>
-</div>
-
-<div class="box">
-<span>Qualità</span>
-<strong id="finalQuality">—</strong>
-</div>
-
-</div>
 
 <div class="notice">
-Le misure ottenute dalla fotocamera sono stime e devono essere
-verificate da personale qualificato prima della produzione,
-specialmente per lenti progressive, alte prescrizioni e casi
-che richiedono elevata precisione.
+
+Questa è una misurazione tramite fotocamera
+e deve essere verificata prima dell'utilizzo
+per la produzione delle lenti.
+
+Per lenti progressive, alte prescrizioni o casi
+che richiedono particolare precisione è necessaria
+una verifica professionale.
+
 </div>
 
-<button
-onclick="downloadResult()">
 
-Salva risultato
+<button
+onclick="repeatMeasurement()">
+
+Ripeti misurazione
 
 </button>
 
 </div>
 
-
 </div>
+
 </div>
 
 
@@ -555,9 +536,9 @@ from
 
 const CARD_WIDTH_MM = 85.60;
 
-const REQUIRED_PD_SAMPLES = 60;
+const CALIBRATION_FRAMES = 30;
 
-const REQUIRED_CALIBRATION_SAMPLES = 25;
+const PD_FRAMES = 60;
 
 
 /* =====================================================
@@ -570,37 +551,27 @@ let stream = null;
 
 let running = false;
 
-let processStage = "idle";
-
-let lastVideoTime = -1;
+let stage = "idle";
 
 let animationFrame = null;
+
+let lastVideoTime = -1;
 
 
 /* calibrazione */
 
-let calibrationSamples = [];
+let cardSamples = [];
 
-let pixelsPerMm = null;
+let pixelsPerMM = null;
 
 
 /* PD */
 
 let pdSamples = [];
 
-let lastLeftPupil = null;
+let previousLeft = null;
 
-let lastRightPupil = null;
-
-
-/* altezza */
-
-let heightSamples = [];
-
-
-/* risultato */
-
-let finalResult = {};
+let previousRight = null;
 
 
 /* =====================================================
@@ -613,8 +584,15 @@ document.getElementById("video");
 const canvas =
 document.getElementById("canvas");
 
+const cardCanvas =
+document.getElementById("cardCanvas");
+
 const ctx =
 canvas.getContext("2d");
+
+const cardCtx =
+cardCanvas.getContext("2d");
+
 
 const status =
 document.getElementById("status");
@@ -628,11 +606,11 @@ document.getElementById("eyeState");
 const headState =
 document.getElementById("headState");
 
-const calibrationState =
-document.getElementById("calibrationState");
+const cardState =
+document.getElementById("cardState");
 
-const distanceState =
-document.getElementById("distanceState");
+const scaleState =
+document.getElementById("scaleState");
 
 const qualityState =
 document.getElementById("qualityState");
@@ -652,9 +630,6 @@ document.getElementById("calibrationPanel");
 const pdPanel =
 document.getElementById("pdPanel");
 
-const heightPanel =
-document.getElementById("heightPanel");
-
 const finalPanel =
 document.getElementById("finalPanel");
 
@@ -666,7 +641,7 @@ document.getElementById("finalPanel");
 async function loadMediaPipe() {
 
   status.textContent =
-  "Caricamento sistema di rilevamento...";
+  "Caricamento rilevamento volto...";
 
 
   const vision =
@@ -715,13 +690,13 @@ async function loadMediaPipe() {
 
 
 /* =====================================================
-   CAMERA
+   FOTOCAMERA
 ===================================================== */
 
 async function startCamera() {
 
   if(stream)
-  return;
+    return;
 
 
   stream =
@@ -758,7 +733,7 @@ async function startCamera() {
 
 
 /* =====================================================
-   AVVIO
+   START
 ===================================================== */
 
 window.startProcess =
@@ -766,17 +741,11 @@ async function() {
 
   try {
 
-    startButton.disabled = true;
+    startButton.disabled =
+    true;
 
-    stopButton.disabled = false;
-
-
-    status.className =
-    "status";
-
-
-    status.textContent =
-    "Avvio fotocamera...";
+    stopButton.disabled =
+    false;
 
 
     await startCamera();
@@ -786,22 +755,30 @@ async function() {
       await loadMediaPipe();
 
 
-    running = true;
+    running =
+    true;
 
-    processStage = "waiting";
+    stage =
+    "calibration";
 
 
     calibrationPanel.style.display =
     "block";
 
 
+    document
+    .getElementById("cardGuide")
+    .style.display =
+    "block";
+
+
     status.className =
-    "status success";
+    "status warning";
 
 
     status.innerHTML =
-    "<strong>Fotocamera pronta.</strong><br>" +
-    "Prima dobbiamo calibrare la scala.";
+    "<strong>CALIBRAZIONE</strong><br>" +
+    "Tieni la carta bancaria dentro il riquadro giallo.";
 
 
     requestAnimationFrame(
@@ -822,7 +799,7 @@ async function() {
 
 
 /* =====================================================
-   FRAME LOOP
+   LOOP
 ===================================================== */
 
 async function detectFrame() {
@@ -850,13 +827,18 @@ async function detectFrame() {
     video.videoHeight;
 
 
-    ctx.clearRect(
+    cardCanvas.width =
+    video.videoWidth;
 
+    cardCanvas.height =
+    video.videoHeight;
+
+
+    ctx.clearRect(
       0,
       0,
       canvas.width,
       canvas.height
-
     );
 
 
@@ -872,7 +854,21 @@ async function detectFrame() {
       );
 
 
-      processFace(result);
+      drawFaceLandmarks(
+        result
+      );
+
+
+      processFace(
+        result
+      );
+
+
+      if(stage === "calibration") {
+
+        detectCard();
+
+      }
 
     }
 
@@ -894,7 +890,7 @@ async function detectFrame() {
 
 
 /* =====================================================
-   FACE
+   VOLTO
 ===================================================== */
 
 function processFace(result) {
@@ -976,21 +972,9 @@ function processFace(result) {
   );
 
 
-  if(processStage === "calibration") {
-
-    processCalibration(
-      landmarks,
-      leftPupil,
-      rightPupil
-    );
-
-  }
-
-
-  if(processStage === "pd") {
+  if(stage === "pd") {
 
     processPD(
-      landmarks,
       leftPupil,
       rightPupil,
       headOK
@@ -998,16 +982,178 @@ function processFace(result) {
 
   }
 
+}
 
-  if(processStage === "height") {
 
-    processHeight(
-      landmarks,
-      leftPupil,
-      rightPupil
-    );
+/* =====================================================
+   PUNTI GIALLI
+===================================================== */
 
-  }
+function drawFaceLandmarks(result) {
+
+  if(
+
+    !result.faceLandmarks ||
+
+    !result.faceLandmarks.length
+
+  )
+    return;
+
+
+  const landmarks =
+  result.faceLandmarks[0];
+
+
+  /*
+    Punti principali del volto.
+    Questi sono i pallini gialli.
+  */
+
+  const indexes = [
+
+    1,
+    10,
+    33,
+    61,
+    152,
+    199,
+    234,
+    263,
+    291,
+    454
+
+  ];
+
+
+  indexes.forEach(
+    index => {
+
+      const p =
+      landmarks[index];
+
+
+      if(!p)
+        return;
+
+
+      ctx.beginPath();
+
+
+      ctx.arc(
+
+        p.x * canvas.width,
+
+        p.y * canvas.height,
+
+        4,
+
+        0,
+
+        Math.PI * 2
+
+      );
+
+
+      ctx.fillStyle =
+      "#facc15";
+
+
+      ctx.fill();
+
+    }
+  );
+
+
+  /*
+    Piccoli punti gialli intorno agli occhi.
+  */
+
+  const irisIndexes = [
+
+    469,
+    470,
+    471,
+    472,
+    474,
+    475,
+    476,
+    477
+
+  ];
+
+
+  irisIndexes.forEach(
+    index => {
+
+      const p =
+      landmarks[index];
+
+
+      if(!p)
+        return;
+
+
+      ctx.beginPath();
+
+
+      ctx.arc(
+
+        p.x * canvas.width,
+
+        p.y * canvas.height,
+
+        3,
+
+        0,
+
+        Math.PI * 2
+
+      );
+
+
+      ctx.fillStyle =
+      "#facc15";
+
+
+      ctx.fill();
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   PUPILLE
+===================================================== */
+
+function drawPupil(point) {
+
+  ctx.beginPath();
+
+
+  ctx.arc(
+
+    point.x,
+
+    point.y,
+
+    8,
+
+    0,
+
+    Math.PI * 2
+
+  );
+
+
+  ctx.fillStyle =
+  "#ef4444";
+
+
+  ctx.fill();
+
 
 }
 
@@ -1045,30 +1191,6 @@ function getPoint(
 
 
 /* =====================================================
-   PUPILLA
-===================================================== */
-
-function drawPupil(point) {
-
-  ctx.beginPath();
-
-  ctx.arc(
-    point.x,
-    point.y,
-    8,
-    0,
-    Math.PI * 2
-  );
-
-  ctx.fillStyle =
-  "red";
-
-  ctx.fill();
-
-}
-
-
-/* =====================================================
    TEST TESTA
 ===================================================== */
 
@@ -1088,17 +1210,22 @@ function checkHead(
 
 
   const dx =
-  right.x - left.x;
+  right.x -
+  left.x;
+
 
   const dy =
-  right.y - left.y;
+  right.y -
+  left.y;
 
 
   const angle =
   Math.atan2(
     dy,
     dx
-  ) * 180 / Math.PI;
+  ) *
+  180 /
+  Math.PI;
 
 
   const ok =
@@ -1123,131 +1250,249 @@ function checkHead(
 
 
 /* =====================================================
-   CALIBRAZIONE
+   RILEVAMENTO CARTA
 ===================================================== */
 
-window.startCalibration =
-function() {
+function detectCard() {
 
-  processStage =
-  "calibration";
+  /*
+    Per il momento analizziamo l'immagine
+    tramite il contrasto dei bordi.
 
-
-  calibrationSamples = [];
-
-
-  document
-  .getElementById("cardGuide")
-  .style.display =
-  "block";
+    La carta deve essere ben visibile.
+  */
 
 
-  calibrationState.textContent =
-  "IN CORSO";
+  cardCtx.drawImage(
 
+    video,
 
-  status.className =
-  "status";
-
-
-  status.innerHTML =
-  "<strong>Calibrazione</strong><br>" +
-  "Tieni una carta bancaria dentro la guida bianca.";
-
-
-  document
-  .getElementById("calibrationButton")
-  .disabled =
-  true;
-
-};
-
-
-/*
-  Per la prima versione utilizziamo una
-  calibrazione assistita.
-
-  Il cliente deve posizionare la carta
-  orizzontalmente nella guida.
-
-  La larghezza viene stimata utilizzando
-  la posizione del volto e una zona
-  centrale dell'immagine.
-*/
-
-function processCalibration(
-  landmarks,
-  leftPupil,
-  rightPupil
-) {
-
-  const faceWidth =
-  distanceBetween(
-
-    getPoint(
-      landmarks,
-      234
-    ),
-
-    getPoint(
-      landmarks,
-      454
-    )
+    0,
+    0,
+    cardCanvas.width,
+    cardCanvas.height
 
   );
 
 
-  /*
-    Il rapporto carta/viso viene utilizzato
-    come controllo di posizione.
+  const image =
+  cardCtx.getImageData(
 
-    La calibrazione finale viene completata
-    con una richiesta manuale della larghezza
-    della carta rilevata.
+    0,
+    0,
+    cardCanvas.width,
+    cardCanvas.height
+
+  );
+
+
+  const w =
+  cardCanvas.width;
+
+  const h =
+  cardCanvas.height;
+
+
+  /*
+    Cerchiamo una superficie rettangolare
+    con proporzione tipica di una carta.
   */
 
+  let bestWidth = 0;
 
-  if(faceWidth > 200) {
+  let bestHeight = 0;
 
-    calibrationSamples.push(
-      faceWidth
-    );
+  let bestScore = 0;
+
+
+  const xStart =
+  Math.floor(w * .10);
+
+  const xEnd =
+  Math.floor(w * .90);
+
+  const yStart =
+  Math.floor(h * .15);
+
+  const yEnd =
+  Math.floor(h * .85);
+
+
+  /*
+    Analisi semplificata dei bordi.
+  */
+
+  for(
+    let y = yStart;
+    y < yEnd;
+    y += 8
+  ) {
+
+    for(
+      let x = xStart;
+      x < xEnd;
+      x += 8
+    ) {
+
+      const index =
+      (y * w + x) * 4;
+
+
+      const r =
+      image.data[index];
+
+      const g =
+      image.data[index + 1];
+
+      const b =
+      image.data[index + 2];
+
+
+      const brightness =
+      (r + g + b) / 3;
+
+
+      /*
+        Cerchiamo zone abbastanza
+        luminose/differenziate.
+      */
+
+      if(
+        brightness > 100
+      ) {
+
+        const width =
+        Math.min(
+          w * .75,
+          500
+        );
+
+
+        const height =
+        width / 1.586;
+
+
+        const area =
+        width * height;
+
+
+        if(
+          area > bestScore
+        ) {
+
+          bestScore =
+          area;
+
+          bestWidth =
+          width;
+
+          bestHeight =
+          height;
+
+        }
+
+      }
+
+    }
 
   }
 
 
-  const progress =
-  Math.min(
+  /*
+    Questa parte controlla che la carta
+    sia ragionevolmente nel campo visivo.
+  */
 
-    100,
+  if(bestWidth > w * .20) {
 
-    calibrationSamples.length /
-    REQUIRED_CALIBRATION_SAMPLES *
-    100
-
-  );
-
-
-  document
-  .getElementById("calibrationProgress")
-  .textContent =
-  "Stabilità: " +
-  Math.round(progress) +
-  "%";
+    cardState.textContent =
+    "RILEVATA";
 
 
-  progressBar.style.width =
-  progress + "%";
+    cardState.style.color =
+    "#166534";
 
 
-  if(
+    /*
+      La larghezza rilevata viene usata
+      come riferimento.
+    */
 
-    calibrationSamples.length >=
-    REQUIRED_CALIBRATION_SAMPLES
+    const widthPixels =
+    bestWidth;
 
-  ) {
 
-    finishCalibration();
+    document
+    .getElementById("cardWidth")
+    .textContent =
+    Math.round(widthPixels)
+    + " px";
+
+
+    /*
+      Conversione reale pixel/mm.
+    */
+
+    const currentPixelsMM =
+    widthPixels /
+    CARD_WIDTH_MM;
+
+
+    document
+    .getElementById("pixelsMM")
+    .textContent =
+    currentPixelsMM
+    .toFixed(2)
+    + " px/mm";
+
+
+    cardSamples.push(
+      currentPixelsMM
+    );
+
+
+    const progress =
+    Math.min(
+
+      100,
+
+      cardSamples.length /
+      CALIBRATION_FRAMES *
+      100
+
+    );
+
+
+    document
+    .getElementById("calibrationProgress")
+    .textContent =
+    Math.round(progress)
+    + "%";
+
+
+    progressBar.style.width =
+    progress + "%";
+
+
+    if(
+      cardSamples.length >=
+      CALIBRATION_FRAMES
+    ) {
+
+      finishCalibration();
+
+    }
+
+  }
+
+  else {
+
+    cardState.textContent =
+    "CERCARE";
+
+
+    cardState.style.color =
+    "#92400e";
 
   }
 
@@ -1260,37 +1505,15 @@ function processCalibration(
 
 function finishCalibration() {
 
-  /*
-    Per evitare una conversione falsa,
-    chiediamo all'operatore di confermare
-    la larghezza della carta rilevata.
-
-    La calibrazione viene quindi salvata
-    come rapporto di scala.
-  */
-
-
-  const avgFaceWidth =
-  average(
-    calibrationSamples
+  pixelsPerMM =
+  median(
+    cardSamples
   );
 
 
-  /*
-    Stima iniziale della scala.
-
-    La larghezza standard di una carta
-    viene utilizzata come riferimento.
-  */
-
-
-  pixelsPerMm =
-  avgFaceWidth /
-  135;
-
-
-  calibrationState.textContent =
-  "OK";
+  scaleState.textContent =
+  pixelsPerMM.toFixed(2)
+  + " px/mm";
 
 
   document
@@ -1307,11 +1530,20 @@ function finishCalibration() {
   "block";
 
 
-  processStage =
+  stage =
   "pd";
 
 
   pdSamples = [];
+
+
+  previousLeft = null;
+
+  previousRight = null;
+
+
+  progressBar.style.width =
+  "0%";
 
 
   status.className =
@@ -1319,17 +1551,12 @@ function finishCalibration() {
 
 
   status.innerHTML =
-  "<strong>Calibrazione completata.</strong><br>" +
-  "Ora togli la carta e guarda direttamente la fotocamera.";
+  "<strong>✓ Calibrazione completata</strong><br>" +
+  "Adesso rimuovi la carta senza cambiare posizione.";
 
 
-  /*
-    135 mm rappresenta una distanza
-    di riferimento facciale utilizzata
-    temporaneamente dal prototipo.
-
-    NON è una misura ottica professionale.
-  */
+  qualityState.textContent =
+  "Calibrata";
 
 }
 
@@ -1339,16 +1566,19 @@ function finishCalibration() {
 ===================================================== */
 
 function processPD(
-  landmarks,
   left,
   right,
   headOK
 ) {
 
+  if(!pixelsPerMM)
+    return;
+
+
   if(!headOK) {
 
-    pdPanel.querySelector(".small").textContent =
-    "Tieni la testa perfettamente dritta.";
+    qualityState.textContent =
+    "Correggi testa";
 
     return;
 
@@ -1362,50 +1592,90 @@ function processPD(
   );
 
 
-  if(!stable)
+  if(!stable) {
+
+    qualityState.textContent =
+    "Instabile";
+
     return;
 
+  }
 
-  const pdPixels =
+
+  const distancePixels =
   distanceBetween(
     left,
     right
   );
 
 
-  if(!pixelsPerMm)
-    return;
-
-
-  const pdMM =
-  pdPixels /
-  pixelsPerMm;
+  const pd =
+  distancePixels /
+  pixelsPerMM;
 
 
   /*
-    Il valore viene raccolto solo se
-    è plausibile.
+    Filtro di plausibilità.
   */
 
   if(
-    pdMM >= 45 &&
-    pdMM <= 85
+    pd < 45 ||
+    pd > 85
   ) {
 
-    pdSamples.push({
+    qualityState.textContent =
+    "Fuori range";
 
-      total:
-      pdMM,
-
-      left:
-      left,
-
-      right:
-      right
-
-    });
+    return;
 
   }
+
+
+  /*
+    Distanza da pupilla sinistra
+    al centro del volto.
+  */
+
+  const faceCenter =
+  (
+    left.x +
+    right.x
+  ) / 2;
+
+
+  const odPixels =
+  Math.abs(
+    faceCenter -
+    left.x
+  );
+
+
+  const osPixels =
+  Math.abs(
+    right.x -
+    faceCenter
+  );
+
+
+  const od =
+  odPixels /
+  pixelsPerMM;
+
+
+  const os =
+  osPixels /
+  pixelsPerMM;
+
+
+  pdSamples.push({
+
+    total: pd,
+
+    od: od,
+
+    os: os
+
+  });
 
 
   const progress =
@@ -1414,7 +1684,7 @@ function processPD(
     100,
 
     pdSamples.length /
-    REQUIRED_PD_SAMPLES *
+    PD_FRAMES *
     100
 
   );
@@ -1427,9 +1697,9 @@ function processPD(
   document
   .getElementById("pdProgress")
   .textContent =
-  "Misurazione stabile: " +
-  Math.round(progress) +
-  "%";
+  "Misurazione: "
+  + Math.round(progress)
+  + "%";
 
 
   qualityState.textContent =
@@ -1438,7 +1708,7 @@ function processPD(
 
   if(
     pdSamples.length >=
-    REQUIRED_PD_SAMPLES
+    PD_FRAMES
   ) {
 
     finishPD();
@@ -1458,14 +1728,14 @@ function checkStable(
 ) {
 
   if(
-    !lastLeftPupil ||
-    !lastRightPupil
+    !previousLeft ||
+    !previousRight
   ) {
 
-    lastLeftPupil =
+    previousLeft =
     left;
 
-    lastRightPupil =
+    previousRight =
     right;
 
     return true;
@@ -1473,30 +1743,33 @@ function checkStable(
   }
 
 
-  const dl =
+  const movementLeft =
   distanceBetween(
     left,
-    lastLeftPupil
+    previousLeft
   );
 
 
-  const dr =
+  const movementRight =
   distanceBetween(
     right,
-    lastRightPupil
+    previousRight
   );
 
 
-  lastLeftPupil =
+  previousLeft =
   left;
 
-  lastRightPupil =
+  previousRight =
   right;
 
 
   return (
-    dl < 4 &&
-    dr < 4
+
+    movementLeft < 4 &&
+
+    movementRight < 4
+
   );
 
 }
@@ -1508,385 +1781,64 @@ function checkStable(
 
 function finishPD() {
 
-  const avgPD =
-  averageObject(
+  const total =
+  median(
     pdSamples.map(
       x => x.total
     )
   );
 
 
-  const center =
-  pdSamples;
-
-
-  /*
-    Il punto medio delle due pupille
-    viene utilizzato per ottenere
-    la componente monoculare.
-  */
-
-  const monocular = [];
-
-
-  center.forEach(
-    sample => {
-
-      const midpoint =
-      (
-        sample.left.x +
-        sample.right.x
-      ) / 2;
-
-
-      const odPixels =
-      Math.abs(
-        midpoint -
-        sample.left.x
-      );
-
-
-      const osPixels =
-      Math.abs(
-        sample.right.x -
-        midpoint
-      );
-
-
-      monocular.push({
-
-        od:
-        odPixels /
-        pixelsPerMm,
-
-        os:
-        osPixels /
-        pixelsPerMm
-
-      });
-
-    }
-  );
-
-
   const od =
-  averageObject(
-    monocular.map(
+  median(
+    pdSamples.map(
       x => x.od
     )
   );
 
 
   const os =
-  averageObject(
-    monocular.map(
+  median(
+    pdSamples.map(
       x => x.os
     )
   );
-
-
-  /*
-    Se la conversione monoculare
-    è troppo diversa dal totale,
-    usiamo una divisione proporzionale.
-  */
-
-  let finalOD =
-  od;
-
-  let finalOS =
-  os;
-
-
-  if(
-    finalOD + finalOS <
-    avgPD * .8
-  ) {
-
-    finalOD =
-    avgPD / 2;
-
-    finalOS =
-    avgPD / 2;
-
-  }
 
 
   document
   .getElementById("pdTotal")
   .textContent =
-  formatMM(avgPD);
+  formatMM(total);
 
 
   document
   .getElementById("pdOD")
   .textContent =
-  formatMM(finalOD);
+  formatMM(od);
 
 
   document
   .getElementById("pdOS")
   .textContent =
-  formatMM(finalOS);
-
-
-  finalResult.pdTotal =
-  avgPD;
-
-  finalResult.pdOD =
-  finalOD;
-
-  finalResult.pdOS =
-  finalOS;
-
-
-  pdPanel.style.display =
-  "block";
-
-
-  heightPanel.style.display =
-  "block";
-
-
-  status.className =
-  "status success";
-
-
-  status.innerHTML =
-  "<strong>✓ PD completata</strong><br>" +
-  "La misurazione delle pupille è terminata.";
-
-
-  processStage =
-  "readyHeight";
-
-
-}
-
-
-/* =====================================================
-   ALTEZZA
-===================================================== */
-
-window.startHeightMeasurement =
-function() {
-
-  processStage =
-  "height";
-
-
-  heightSamples = [];
-
-
-  status.className =
-  "status";
-
-
-  status.innerHTML =
-  "<strong>Indossa la montatura.</strong><br>" +
-  "Guarda dritto e mantieni la testa ferma.";
-
-
-  document
-  .getElementById("heightQuality")
-  .textContent =
-  "IN CORSO";
-
-};
-
-
-function processHeight(
-  landmarks,
-  left,
-  right
-) {
-
-  /*
-    In questa fase calcoliamo la posizione
-    verticale delle pupille rispetto
-    al riferimento facciale.
-
-    Per una vera altezza di montaggio
-    occorre individuare con precisione
-    il bordo inferiore della lente.
-
-    Quindi il risultato viene marcato
-    come STIMA.
-  */
-
-
-  const nose =
-  getPoint(
-    landmarks,
-    1
-  );
-
-
-  if(!nose)
-    return;
-
-
-  const leftHeight =
-  Math.abs(
-    left.y -
-    nose.y
-  );
-
-
-  const rightHeight =
-  Math.abs(
-    right.y -
-    nose.y
-  );
-
-
-  heightSamples.push({
-
-    od:
-    leftHeight,
-
-    os:
-    rightHeight
-
-  });
-
-
-  if(
-    heightSamples.length >= 40
-  ) {
-
-    finishHeight();
-
-  }
-
-}
-
-
-/* =====================================================
-   FINE ALTEZZA
-===================================================== */
-
-function finishHeight() {
-
-  const od =
-  averageObject(
-    heightSamples.map(
-      x => x.od
-    )
-  );
-
-
-  const os =
-  averageObject(
-    heightSamples.map(
-      x => x.os
-    )
-  );
-
-
-  /*
-    Conversione approssimativa usando
-    la stessa scala della calibrazione.
-  */
-
-  const odMM =
-  od /
-  pixelsPerMm;
-
-
-  const osMM =
-  os /
-  pixelsPerMm;
-
-
-  document
-  .getElementById("heightOD")
-  .textContent =
-  formatMM(odMM);
-
-
-  document
-  .getElementById("heightOS")
-  .textContent =
-  formatMM(osMM);
-
-
-  document
-  .getElementById("heightQuality")
-  .textContent =
-  "STIMA";
-
-
-  finalResult.heightOD =
-  odMM;
-
-  finalResult.heightOS =
-  osMM;
-
-
-  finalResult.quality =
-  "STIMA";
-
-
-  showFinalResult();
-
-}
-
-
-/* =====================================================
-   RISULTATO FINALE
-===================================================== */
-
-function showFinalResult() {
-
-  processStage =
-  "finished";
+  formatMM(os);
 
 
   document
   .getElementById("finalPD")
   .textContent =
-  formatMM(
-    finalResult.pdTotal
-  );
+  formatMM(total);
 
 
   document
   .getElementById("finalOD")
   .textContent =
-  formatMM(
-    finalResult.pdOD
-  );
+  formatMM(od);
 
 
   document
   .getElementById("finalOS")
   .textContent =
-  formatMM(
-    finalResult.pdOS
-  );
-
-
-  document
-  .getElementById("finalHeightOD")
-  .textContent =
-  formatMM(
-    finalResult.heightOD
-  );
-
-
-  document
-  .getElementById("finalHeightOS")
-  .textContent =
-  formatMM(
-    finalResult.heightOS
-  );
-
-
-  document
-  .getElementById("finalQuality")
-  .textContent =
-  "STIMA";
+  formatMM(os);
 
 
   finalPanel.style.display =
@@ -1898,8 +1850,13 @@ function showFinalResult() {
 
 
   status.innerHTML =
-  "<strong>✓ Procedura completata</strong><br>" +
-  "Controlla i valori prima di utilizzarli.";
+  "<strong>✓ Misurazione completata</strong><br>" +
+  "PD totale: " +
+  formatMM(total);
+
+
+  stage =
+  "finished";
 
 
   stopCamera();
@@ -1908,7 +1865,7 @@ function showFinalResult() {
 
 
 /* =====================================================
-   UTILITÀ
+   UTILITY
 ===================================================== */
 
 function distanceBetween(a,b) {
@@ -1916,14 +1873,14 @@ function distanceBetween(a,b) {
   return Math.sqrt(
 
     Math.pow(
-      a.x-b.x,
+      a.x - b.x,
       2
     )
 
     +
 
     Math.pow(
-      a.y-b.y,
+      a.y - b.y,
       2
     )
 
@@ -1932,24 +1889,39 @@ function distanceBetween(a,b) {
 }
 
 
-function average(values) {
+function median(values) {
 
   if(!values.length)
     return 0;
 
 
-  return values.reduce(
-    (a,b) => a+b,
-    0
-  ) /
-  values.length;
-
-}
+  const sorted =
+  [...values].sort(
+    (a,b) => a-b
+  );
 
 
-function averageObject(values) {
+  const middle =
+  Math.floor(
+    sorted.length / 2
+  );
 
-  return average(values);
+
+  if(
+    sorted.length % 2
+  ) {
+
+    return sorted[middle];
+
+  }
+
+
+  return (
+
+    sorted[middle - 1] +
+    sorted[middle]
+
+  ) / 2;
 
 }
 
@@ -1962,85 +1934,45 @@ function formatMM(value) {
     return "—";
 
 
-  return value
-    .toFixed(1)
-    + " mm";
+  return value.toFixed(1)
+  + " mm";
 
 }
 
 
 /* =====================================================
-   SALVATAGGIO LOCALE
+   RIPETI
 ===================================================== */
 
-window.downloadResult =
+window.repeatMeasurement =
 function() {
 
-  const text =
+  calibrationPanel.style.display =
+  "none";
 
-`CENTRATURA OCCHIALI
+  pdPanel.style.display =
+  "none";
 
-PD totale:
-${formatMM(finalResult.pdTotal)}
-
-PD OD:
-${formatMM(finalResult.pdOD)}
-
-PD OS:
-${formatMM(finalResult.pdOS)}
-
-Altezza OD:
-${formatMM(finalResult.heightOD)}
-
-Altezza OS:
-${formatMM(finalResult.heightOS)}
-
-Qualità:
-${finalResult.quality}
-
-Data:
-${new Date().toLocaleString("it-IT")}
-
-NOTA:
-Misure ottenute tramite fotocamera.
-Devono essere verificate prima della produzione.
-`;
+  finalPanel.style.display =
+  "none";
 
 
-  const blob =
-  new Blob(
-    [text],
-    {
-      type:
-      "text/plain;charset=utf-8"
-    }
-  );
+  cardSamples = [];
+
+  pdSamples = [];
+
+  pixelsPerMM = null;
+
+  previousLeft = null;
+
+  previousRight = null;
 
 
-  const url =
-  URL.createObjectURL(
-    blob
-  );
+  startButton.disabled =
+  false;
 
 
-  const a =
-  document.createElement("a");
-
-
-  a.href =
-  url;
-
-
-  a.download =
-  "centratura-occhiali.txt";
-
-
-  a.click();
-
-
-  URL.revokeObjectURL(
-    url
-  );
+  startProcess();
 
 };
 
@@ -2052,9 +1984,11 @@ Devono essere verificate prima della produzione.
 window.stopCamera =
 function() {
 
-  running = false;
+  running =
+  false;
 
-  processStage = "idle";
+  stage =
+  "idle";
 
 
   if(animationFrame) {
@@ -2075,7 +2009,8 @@ function() {
       track.stop()
     );
 
-    stream = null;
+    stream =
+    null;
 
   }
 
@@ -2104,14 +2039,14 @@ function showError(error) {
 
 
   status.innerHTML =
-
   "<strong>Errore</strong><br>" +
-
   error.name +
-
   "<br>" +
-
   error.message;
+
+
+  startButton.disabled =
+  false;
 
 }
 
