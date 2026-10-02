@@ -7,33 +7,76 @@
   <title>Centratura Occhiali</title>
 
   <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      background: #f5f6f8;
-      font-family: Arial, sans-serif;
+      background: #f4f5f7;
       color: #111827;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
     .container {
-      max-width: 800px;
+      width: 100%;
+      max-width: 950px;
       margin: auto;
       padding: 20px;
     }
 
     .card {
       background: white;
-      padding: 25px;
-      border-radius: 18px;
-      box-shadow: 0 5px 20px rgba(0,0,0,.08);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 5px 25px rgba(0,0,0,.08);
     }
 
     h1 {
       margin-top: 0;
+      font-size: 28px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .info {
+      padding: 14px;
+      background: #eef2ff;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .status {
+      padding: 15px;
+      background: #f3f4f6;
+      border-radius: 12px;
+      margin-top: 15px;
+      line-height: 1.5;
+    }
+
+    .success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
     }
 
     button {
       width: 100%;
       padding: 15px;
+      margin-top: 15px;
       border: 0;
       border-radius: 12px;
       background: #111827;
@@ -41,30 +84,104 @@
       font-size: 17px;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 15px;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
     }
 
     .camera {
       position: relative;
+      width: 100%;
       background: black;
-      border-radius: 15px;
+      border-radius: 18px;
       overflow: hidden;
       margin-top: 20px;
     }
 
-    video {
+    #video {
       display: block;
       width: 100%;
+      height: auto;
       transform: scaleX(-1);
     }
 
-    #status {
-      margin-top: 15px;
-      padding: 15px;
-      border-radius: 10px;
-      background: #f3f4f6;
-      line-height: 1.5;
+    #canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      transform: scaleX(-1);
     }
+
+    .guide {
+      position: absolute;
+      width: 48%;
+      height: 65%;
+      left: 26%;
+      top: 17.5%;
+      border: 2px dashed rgba(255,255,255,.85);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .measurements {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .measurement {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .measurement span {
+      display: block;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .measurement strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 22px;
+    }
+
+    .instructions {
+      margin-top: 18px;
+      line-height: 1.6;
+    }
+
+    .debug {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #111827;
+      color: #e5e7eb;
+      font-family: monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    @media(max-width:700px) {
+
+      .container {
+        padding: 10px;
+      }
+
+      .measurements {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
   </style>
 </head>
 
@@ -76,14 +193,22 @@
 
     <h1>Centratura Occhiali</h1>
 
-    <p>
-      Questa pagina verrà utilizzata per la centratura
-      automatica delle lenti.
-    </p>
+    <div class="info">
+      Posizionati davanti alla fotocamera e guarda
+      direttamente verso lo schermo.
+    </div>
 
-    <button onclick="avviaFotocamera()">
-      Attiva fotocamera
-    </button>
+    <div class="instructions">
+
+      <strong>Prima della misurazione:</strong>
+
+      <br>
+
+      Mantieni la testa dritta, non inclinare il viso
+      e cerca di rimanere fermo.
+
+    </div>
+
 
     <div class="camera">
 
@@ -91,13 +216,106 @@
         id="video"
         autoplay
         playsinline
-        muted
-      ></video>
+        muted>
+      </video>
+
+      <canvas id="canvas"></canvas>
+
+      <div class="guide"></div>
 
     </div>
 
-    <div id="status">
+
+    <div
+      id="status"
+      class="status">
+
       Fotocamera non ancora avviata.
+
+    </div>
+
+
+    <div class="measurements">
+
+      <div class="measurement">
+
+        <span>Volto</span>
+
+        <strong id="faceStatus">—</strong>
+
+      </div>
+
+      <div class="measurement">
+
+        <span>Occhi</span>
+
+        <strong id="eyesStatus">—</strong>
+
+      </div>
+
+      <div class="measurement">
+
+        <span>Pupille</span>
+
+        <strong id="pupilsStatus">—</strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="measurements">
+
+      <div class="measurement">
+
+        <span>PD stimato</span>
+
+        <strong id="pd">—</strong>
+
+      </div>
+
+      <div class="measurement">
+
+        <span>Posizione</span>
+
+        <strong id="position">—</strong>
+
+      </div>
+
+      <div class="measurement">
+
+        <span>Qualità</span>
+
+        <strong id="quality">—</strong>
+
+      </div>
+
+    </div>
+
+
+    <button
+      id="startButton"
+      onclick="startCamera()">
+
+      Attiva fotocamera
+
+    </button>
+
+
+    <button
+      id="stopButton"
+      onclick="stopCamera()"
+      disabled>
+
+      Ferma fotocamera
+
+    </button>
+
+
+    <div
+      id="debug"
+      class="debug"
+      style="display:none;">
     </div>
 
   </div>
@@ -105,52 +323,698 @@
 </div>
 
 
-<script>
+<script type="module">
 
-async function avviaFotocamera() {
+  import {
+    FaceLandmarker,
+    FilesetResolver
+  } from
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32";
+
+
+  let faceLandmarker = null;
+
+  let running = false;
+
+  let stream = null;
+
+  let lastVideoTime = -1;
+
+
+  const video =
+    document.getElementById("video");
+
+  const canvas =
+    document.getElementById("canvas");
+
+  const ctx =
+    canvas.getContext("2d");
+
 
   const status =
-    document.getElementById('status');
+    document.getElementById("status");
 
-  try {
+
+  const faceStatus =
+    document.getElementById("faceStatus");
+
+
+  const eyesStatus =
+    document.getElementById("eyesStatus");
+
+
+  const pupilsStatus =
+    document.getElementById("pupilsStatus");
+
+
+  const pd =
+    document.getElementById("pd");
+
+
+  const position =
+    document.getElementById("position");
+
+
+  const quality =
+    document.getElementById("quality");
+
+
+  const startButton =
+    document.getElementById("startButton");
+
+
+  const stopButton =
+    document.getElementById("stopButton");
+
+
+  const debug =
+    document.getElementById("debug");
+
+
+  async function initializeMediaPipe() {
 
     status.textContent =
-      'Richiesta accesso alla fotocamera...';
+      "Caricamento del sistema di rilevamento...";
 
-    const stream =
-      await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false
-      });
 
-    const video =
-      document.getElementById('video');
+    const vision =
+      await FilesetResolver.forVisionTasks(
 
-    video.srcObject = stream;
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm"
 
-    await video.play();
+      );
 
-    status.innerHTML =
-      '<strong>✓ Fotocamera funzionante!</strong><br>' +
-      'La fotocamera è stata attivata correttamente.';
+
+    faceLandmarker =
+      await FaceLandmarker.createFromOptions(
+
+        vision,
+
+        {
+
+          baseOptions: {
+
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+
+            delegate: "GPU"
+
+          },
+
+          runningMode: "VIDEO",
+
+          numFaces: 1,
+
+          minFaceDetectionConfidence: .5,
+
+          minFacePresenceConfidence: .5,
+
+          minTrackingConfidence: .5,
+
+          outputFaceBlendshapes: false,
+
+          outputFacialTransformationMatrixes: false
+
+        }
+
+      );
 
   }
 
-  catch (errore) {
 
-    console.error(errore);
+  window.startCamera =
+    async function() {
 
-    status.innerHTML =
-      '<strong>Errore</strong><br><br>' +
-      'Codice: ' +
-      errore.name +
-      '<br>' +
-      'Messaggio: ' +
-      errore.message;
+      try {
+
+        debug.style.display = "none";
+
+
+        status.className =
+          "status";
+
+
+        status.textContent =
+          "Richiesta accesso alla fotocamera...";
+
+
+        stream =
+          await navigator.mediaDevices.getUserMedia({
+
+            video: {
+
+              width: {
+                ideal: 1280
+              },
+
+              height: {
+                ideal: 720
+              },
+
+              facingMode: {
+                ideal: "user"
+              }
+
+            },
+
+            audio: false
+
+          });
+
+
+        video.srcObject =
+          stream;
+
+
+        await video.play();
+
+
+        startButton.disabled =
+          true;
+
+
+        stopButton.disabled =
+          false;
+
+
+        status.className =
+          "status success";
+
+
+        status.innerHTML =
+          "<strong>✓ Fotocamera attiva</strong><br>" +
+          "Attendi il rilevamento del viso.";
+
+
+        await initializeMediaPipe();
+
+
+        running = true;
+
+
+        requestAnimationFrame(
+          detectFrame
+        );
+
+
+      }
+
+      catch(error) {
+
+        console.error(error);
+
+
+        status.className =
+          "status error";
+
+
+        status.innerHTML =
+          "<strong>Errore fotocamera</strong><br>" +
+          error.name +
+          "<br>" +
+          error.message;
+
+
+        debug.style.display =
+          "block";
+
+
+        debug.textContent =
+          "Codice: " +
+          error.name +
+          "\n\n" +
+          "Messaggio: " +
+          error.message +
+          "\n\n" +
+          "URL: " +
+          location.href +
+          "\n\n" +
+          "Secure Context: " +
+          window.isSecureContext;
+
+
+      }
+
+    };
+
+
+  window.stopCamera =
+    function() {
+
+      running = false;
+
+
+      if(stream) {
+
+        stream
+          .getTracks()
+          .forEach(
+            track => track.stop()
+          );
+
+        stream = null;
+
+      }
+
+
+      video.srcObject = null;
+
+
+      startButton.disabled =
+        false;
+
+
+      stopButton.disabled =
+        true;
+
+
+      status.className =
+        "status";
+
+
+      status.textContent =
+        "Fotocamera arrestata.";
+
+    };
+
+
+  async function detectFrame() {
+
+    if(!running)
+      return;
+
+
+    if(
+      video.readyState >= 2 &&
+      video.currentTime !== lastVideoTime
+    ) {
+
+      lastVideoTime =
+        video.currentTime;
+
+
+      canvas.width =
+        video.videoWidth;
+
+      canvas.height =
+        video.videoHeight;
+
+
+      ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+
+      try {
+
+        const result =
+          faceLandmarker.detectForVideo(
+
+            video,
+
+            performance.now()
+
+          );
+
+
+        processFace(
+          result
+        );
+
+
+      }
+
+      catch(error) {
+
+        console.error(
+          "Errore MediaPipe:",
+          error
+        );
+
+      }
+
+    }
+
+
+    requestAnimationFrame(
+      detectFrame
+    );
 
   }
 
-}
+
+  function processFace(result) {
+
+    if(
+      !result.faceLandmarks ||
+      result.faceLandmarks.length === 0
+    ) {
+
+      faceStatus.textContent =
+        "NO";
+
+
+      eyesStatus.textContent =
+        "—";
+
+
+      pupilsStatus.textContent =
+        "—";
+
+
+      pd.textContent =
+        "—";
+
+
+      position.textContent =
+        "Avvicinati";
+
+
+      quality.textContent =
+        "Bassa";
+
+
+      return;
+
+    }
+
+
+    const landmarks =
+      result.faceLandmarks[0];
+
+
+    faceStatus.textContent =
+      "OK";
+
+
+    drawFace(
+      landmarks
+    );
+
+
+    const leftEye =
+      getPoint(
+        landmarks,
+        468
+      );
+
+
+    const rightEye =
+      getPoint(
+        landmarks,
+        473
+      );
+
+
+    if(
+      leftEye &&
+      rightEye
+    ) {
+
+      eyesStatus.textContent =
+        "OK";
+
+
+      pupilsStatus.textContent =
+        "OK";
+
+
+      drawPupil(
+        leftEye
+      );
+
+
+      drawPupil(
+        rightEye
+      );
+
+
+      calculatePD(
+        leftEye,
+        rightEye
+      );
+
+
+    }
+
+    else {
+
+      eyesStatus.textContent =
+        "Rilevamento";
+
+
+      pupilsStatus.textContent =
+        "Rilevamento";
+
+    }
+
+
+    checkFacePosition(
+      landmarks
+    );
+
+  }
+
+
+  function getPoint(
+    landmarks,
+    index
+  ) {
+
+    if(
+      !landmarks[index]
+    )
+      return null;
+
+
+    return {
+
+      x:
+        landmarks[index].x *
+        canvas.width,
+
+      y:
+        landmarks[index].y *
+        canvas.height
+
+    };
+
+  }
+
+
+  function drawPupil(point) {
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+
+      point.x,
+
+      point.y,
+
+      7,
+
+      0,
+
+      Math.PI * 2
+
+    );
+
+
+    ctx.fillStyle =
+      "red";
+
+
+    ctx.fill();
+
+  }
+
+
+  function drawFace(
+    landmarks
+  ) {
+
+    const keyPoints = [
+
+      10,
+      152,
+      234,
+      454,
+      33,
+      263,
+      61,
+      291
+
+    ];
+
+
+    ctx.fillStyle =
+      "rgba(0,255,0,.5)";
+
+
+    keyPoints.forEach(
+      index => {
+
+        const p =
+          landmarks[index];
+
+
+        if(!p)
+          return;
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+
+          p.x * canvas.width,
+
+          p.y * canvas.height,
+
+          3,
+
+          0,
+
+          Math.PI * 2
+
+        );
+
+
+        ctx.fill();
+
+      }
+    );
+
+  }
+
+
+  function calculatePD(
+    left,
+    right
+  ) {
+
+    const distance =
+      Math.sqrt(
+
+        Math.pow(
+          left.x - right.x,
+          2
+        )
+
+        +
+
+        Math.pow(
+          left.y - right.y,
+          2
+        )
+
+      );
+
+
+    /*
+      ATTENZIONE:
+
+      Questo valore NON è ancora
+      una misura reale in millimetri.
+
+      È solamente la distanza
+      tra le pupille in pixel.
+
+      La calibrazione verrà aggiunta
+      nel prossimo passaggio.
+    */
+
+
+    pd.textContent =
+      Math.round(
+        distance
+      ) +
+      " px";
+
+
+    window.lastPupilDistance =
+      distance;
+
+  }
+
+
+  function checkFacePosition(
+    landmarks
+  ) {
+
+    const nose =
+      landmarks[1];
+
+
+    if(!nose)
+      return;
+
+
+    const x =
+      nose.x;
+
+
+    const y =
+      nose.y;
+
+
+    let horizontal =
+      "centrato";
+
+
+    let vertical =
+      "centrato";
+
+
+    if(x < .42)
+      horizontal =
+        "spostato a sinistra";
+
+
+    if(x > .58)
+      horizontal =
+        "spostato a destra";
+
+
+    if(y < .40)
+      vertical =
+        "troppo alto";
+
+
+    if(y > .60)
+      vertical =
+        "troppo basso";
+
+
+    position.textContent =
+      horizontal +
+      " / " +
+      vertical;
+
+
+    if(
+      horizontal === "centrato" &&
+      vertical === "centrato"
+    ) {
+
+      quality.textContent =
+        "Buona";
+
+    }
+
+    else {
+
+      quality.textContent =
+        "Da correggere";
+
+    }
+
+  }
 
 </script>
 
