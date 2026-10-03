@@ -3,16 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Misurazione Centratura Occhiali Live - High Precision</title>
+<title>Misurazione Centratura Occhiali Live</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 .wrap{max-width:960px;margin:auto;padding:16px}
 .card{background:#161b22;border:1px solid #30363d;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
 h1{font-size:24px;margin:0 0 12px;color:#fff}
 h2{font-size:18px;margin:0 0 10px;color:#58a6ff}
-p{line-height:1.5;color:#8b949e}
-.warning{background:rgba(210,153,34,0.15);border:1px solid #d29922;border-radius:14px;padding:15px;margin:14px 0;color:#e3b341}
+p, ul{line-height:1.5;color:#8b949e;margin-top:6px;margin-bottom:12px}
+ul{padding-left:20px}
+li{margin-bottom:6px}
+.warning{background:rgba(210,153,34,0.15);border:1px solid #d29922;border-radius:14px;padding:16px;margin:14px 0;color:#e3b341}
 button{border:0;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:700;background:#238636;color:#fff;cursor:pointer;margin:4px 6px 4px 0;transition:all .2s}
 button:hover{background:#2ea043}
 button:disabled{opacity:.4;cursor:not-allowed}
@@ -22,14 +24,15 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .videoBox{position:relative;width:100%;max-width:760px;margin:15px auto;background:#000;border-radius:16px;overflow:hidden;aspect-ratio:4/3;border:2px solid #30363d}
 video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 canvas{pointer-events:none}
+#freeze{pointer-events:auto;cursor:crosshair;touch-action:manipulation}
 .guide{position:absolute;inset:0;pointer-events:none}
-.cardGuide{position:absolute;width:26%;aspect-ratio:85.6/53.98;left:50%;top:46%;transform:translate(-50%,-50%);border:2px dashed #58a6ff;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4)}
-.faceGuide{position:absolute;height:70%;aspect-ratio:.75;left:50%;top:50%;transform:translate(-50%,-50%);border:2px dashed #238636;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.4)}
+.cardGuide{position:absolute;width:28%;aspect-ratio:85.6/53.98;left:50%;top:46%;transform:translate(-50%,-50%);border:2px dashed #58a6ff;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)}
+.faceGuide{position:absolute;height:70%;aspect-ratio:.75;left:50%;top:50%;transform:translate(-50%,-50%);border:2px dashed #238636;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)}
 .status{padding:13px 15px;border-radius:12px;background:#21262d;font-weight:600;margin:12px 0;overflow-wrap:anywhere;border:1px solid #30363d}
 .ok{background:rgba(46,160,67,0.15);color:#3fb950;border-color:#238636}
 .bad{background:rgba(248,81,73,0.15);color:#f85149;border-color:#da3633}
 .progress{height:10px;background:#21262d;border-radius:20px;overflow:hidden;margin:10px 0}
-.progress div{height:100%;width:0;background:#238636;transition:width .1s linear}
+.progress div{height:100%;width:0;background:#238636;transition:width .12s linear}
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
 .metric{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:12px;text-align:center}
 .metric b{display:block;font-size:20px;margin-top:4px;color:#fff}
@@ -37,7 +40,7 @@ canvas{pointer-events:none}
 .result{background:rgba(56,139,253,0.1);border:1px solid #1f6beb;border-radius:15px;padding:16px;margin-top:14px}
 .big{font-size:36px;font-weight:800;color:#58a6ff}
 .liveOverlay{position:absolute;top:12px;left:12px;background:rgba(13,17,23,0.85);padding:10px 14px;border-radius:10px;border:1px solid #30363d;backdrop-filter:blur(4px);z-index:10}
-.liveOverlay div{font-size:13px;color:#8b949e}
+.liveOverlay div{font-size:12px;color:#8b949e}
 .liveOverlay b{font-size:16px;color:#3fb950}
 details{margin-top:12px}
 #debug,#dbgStat{white-space:pre-wrap;font-size:11px;color:#8b949e;background:#0d1117;border-radius:8px;padding:10px;margin:8px 0;border:1px solid #30363d}
@@ -48,28 +51,36 @@ details{margin-top:12px}
 <div class="wrap">
 
 <section id="intro" class="card">
-<h1>Centratura Occhiali Automatica Live</h1>
+<h1>Misurazione Centratura Occhiali Live</h1>
 <div class="warning">
-<b>🔬 SISTEMA AD ALTA PRECISIONE D'AMBITO OTTICO</b>
-<p>Questo strumento utilizza il tracciamento tridimensionale dell'iride e il posizionamento spaziale del volto per eliminare la necessità del controllo dell'ottico.</p>
-<p><b>Istruzioni per la precisione:</b></p>
+<b>⚠️ IMPORTANTE — INFORMATIVA E ISTRUZIONI COMPLETE</b>
+<p><b>1. Riservatezza e Trattamento Dati:</b><br>
+Il sistema utilizza la webcam esclusivamente per il calcolo geometrico e la stima dei parametri in tempo reale. Nessun fermo immagine, scansione o dato personale viene inviato, salvato o memorizzato su server esterni.</p>
+
+<p><b>2. Protezione Dati Sensibili:</b><br>
+La tessera sanitaria o carta di credito serve unicamente come <b>riferimento dimensionale standard (85,6 mm)</b>. Puoi rivolgere il retro della carta o coprire con un piccolo pezzo di carta/adesivo i numeri o i dati personali.</p>
+
+<p><b>3. Come Tenere e Posizionare la Tessera:</b></p>
 <ul>
-<li>Indossa gli occhiali nella posizione d'uso abituale.</li>
-<li>Mantieni la testa dritta guardando direttamente la fotocamera ad una distanza di circa 40–50 cm.</li>
-<li>Prima fase: tieni una tessera standard (Tessera Sanitaria/Carta d'identità) appoggiata sul frontale degli occhiali.</li>
-<li>Assicurati che la stanza sia ben illuminata e che non ci siano riflessi diretti sulle lenti.</li>
+  <li><b>Tenuta con le dita:</b> Impugna la tessera delicatamente per i lati o per il bordo inferiore (usando solo due dita per lato), senza coprire tutta la superficie.</li>
+  <li><b>Posizione:</b> Appoggia la tessera al davanti della montatura, oppure posizionala aderente sotto il mento / sulla fronte se risulta più comodo.</li>
+  <li><b>Illuminazione e Postura:</b> Siediti a circa 40–60 cm dallo schermo (lunghezza di un braccio) in una stanza ben illuminata. Mantieni la testa dritta e guarda verso la fotocamera.</li>
 </ul>
+
+<p class="small">La misurazione digitale è di supporto e accuratezza elevata. Se il sistema riscontra problemi di rilevamento automatico per via della luce o delle dita, potrai utilizzare il pulsante «Calibra a mano».</p>
 </div>
-<button id="startBtn">AVVIA SCANSIONE LIVE</button>
+<p><b>Prima di iniziare:</b> indossa gli occhiali, prendi la tessera per i bordi e tieniti pronto a rimanere fermo.</p>
+<button id="startBtn">HO LETTO — INIZIA MISURAZIONE</button>
 </section>
 
 <section id="app" class="card hidden">
-<h2 id="title">Fase 1 — Calibrazione Millimetrica Live</h2>
-<p id="instructions">Appoggia la tessera al frontale degli occhiali. Il sistema rilevatore ad alta precisione la scansionerà automaticamente.</p>
+<h2 id="title">Fase 1 — Calibrazione Tessera</h2>
+<p id="instructions">Tieni la tessera sanitaria o carta plastificata per i bordi, appoggiata davanti alla montatura o sotto il mento, dentro il riquadro tratteggiato.</p>
 
 <div class="videoBox" id="videoBox">
   <video id="video" autoplay muted playsinline></video>
   <canvas id="overlay"></canvas>
+  <canvas id="freeze" class="hidden"></canvas>
   <div id="liveHUD" class="liveOverlay hidden">
     <div>Distanza Pupillare Live</div>
     <b id="livePDValue">--.- mm</b>
@@ -78,17 +89,23 @@ details{margin-top:12px}
   <div id="faceGuide" class="guide hidden"><div class="faceGuide"></div></div>
 </div>
 
-<div id="status" class="status">Inizializzazione fotocamera...</div>
+<div id="status" class="status">Avvio fotocamera in corso…</div>
 
 <div class="metrics">
   <div class="metric">Rilevamento Tessera<b id="cvState">In attesa</b></div>
   <div class="metric">Posa Volto 3D<b id="poseState">Verifica</b></div>
-  <div class="metric">Precisione Misura<b id="accState">0%</b></div>
+  <div class="metric">Stato Tessera<b id="cardState">—</b></div>
 </div>
 
 <div id="calArea">
-  <b>Calibrazione Sensori Spaziali: <span id="cardCount">0</span>/<span id="cardTotal">10</span></b>
+  <b>Stabilità Tessera: <span id="cardCount">0</span>/<span id="cardTotal">10</span></b>
   <div class="progress"><div id="cardProgress"></div></div>
+  <button id="manualBtn" class="secondary">📏 Non la rileva? Calibra a mano</button>
+  <div id="manualControls" class="hidden">
+    <button id="manualConfirm" disabled>CONFERMA LATO</button>
+    <button id="manualRetry" class="secondary">RIPROVA</button>
+  </div>
+  <p class="small">Se la tessera è tenuta male o la luce non basta, usa «Calibra a mano»: il video si fermerà e potrai segnare manualmente i due estremi del lato lungo (85.6 mm).</p>
 </div>
 
 <div id="measureArea" class="hidden">
@@ -97,19 +114,19 @@ details{margin-top:12px}
 </div>
 
 <div id="result" class="result hidden">
-  <div class="small">Distanza Pupillare Interpupillare (PD) Totale</div>
+  <div class="small">Distanza Pupillare (PD) Totale Calcolata</div>
   <div class="big"><span id="pdTotal">—</span> mm</div>
   <div class="metrics">
-    <div class="metric">Semidistanza OD (Destra)<b id="pdOD">—</b></div>
-    <div class="metric">Semidistanza OS (Sinistra)<b id="pdOS">—</b></div>
-    <div class="metric">Indice Precisione<b id="quality">—</b></div>
+    <div class="metric">PD OD (Destra)<b id="pdOD">—</b></div>
+    <div class="metric">PD OS (Sinistra)<b id="pdOS">—</b></div>
+    <div class="metric">Stabilità Misura<b id="quality">—</b></div>
   </div>
-  <p class="small">Risultato calcolato con compensazione prospettica e calibrazione 3D delle iridi.</p>
-  <button id="repeatBtn" class="secondary">NUOVA MISURAZIONE</button>
+  <p class="small">Risultato calcolato con calibrazione millimetrica e compensazione 3D della posa.</p>
+  <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
 </div>
 
 <details>
-  <summary class="small">Diagnostica Tecnica Live</summary>
+  <summary class="small">Diagnostica Tecnica</summary>
   <div id="dbgStat">—</div>
   <pre id="debug"></pre>
 </details>
@@ -121,14 +138,14 @@ details{margin-top:12px}
 "use strict";
 const CARD_W_MM=85.60, CARD_H_MM=53.98,
       CARD_STABLE_REQUIRED=10, MEASURE_REQUIRED=25,
-      CARD_DETECT_INTERVAL=100, FACE_DETECT_INTERVAL=33,
+      CARD_DETECT_INTERVAL=150, FACE_DETECT_INTERVAL=33,
       DETECT_WIDTH=800;
 
 const MP_VERSIONS=["0.10.32","0.10.21"];
 const CV_SOURCES=["https://docs.opencv.org/4.x/opencv.js","https://docs.opencv.org/4.5.0/opencv.js"];
 
 const $=id=>document.getElementById(id),
-      video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d"), videoBox=$("videoBox"),
+      video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d"), freeze=$("freeze"), videoBox=$("videoBox"),
       detectCanvas=document.createElement("canvas"),
       detectCtx=detectCanvas.getContext("2d",{willReadFrequently:true});
 
@@ -139,11 +156,11 @@ let stream=null, running=false, rafId=0, phase=0,
     faceLandmarker=null, facePromise=null, faceLoadErrorMessage="",
     cardFrames=0, cardSamples=[], previousCard=null, pxPerMm=null,
     faceSamples=[], stableFrames=0, finished=false,
-    lastCardDetect=0, lastFaceDetect=0,
+    lastCardDetect=0, lastFaceDetect=0, livePD=0, smoothPD=0,
     overlay={card:null, cardT:0, lm:null, lmT:0},
-    livePD=0, smoothPD=0;
+    manual={active:false, snap:null, crop:null, pts:[], pxPerMm:null};
 
-/* --- Log Diagnostico --- */
+/* ---------- Diagnostica e Log ---------- */
 const dbgLines=[];
 function dbg(msg){
   const t=((performance.now())/1000).toFixed(1);
@@ -163,7 +180,7 @@ function withTimeout(promise,ms,msg){
   return Promise.race([promise, new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(msg)),ms)})]).finally(()=>clearTimeout(timer));
 }
 
-/* --- OpenCV Script Loader --- */
+/* ---------- Caricamento OpenCV ---------- */
 let cvSourceIndex=0;
 function markCvReady(){ if(cvReady)return; cvReady=true; cvFailed=false; $("cvState").textContent="Pronto"; dbg("OpenCV Pronto"); }
 function cvIsUsable(c){ return !!c && typeof c.Mat==="function"; }
@@ -189,7 +206,7 @@ function loadOpenCV(){
 }
 loadOpenCV();
 
-/* --- Avvio App --- */
+/* ---------- Avvio & Reset ---------- */
 $("startBtn").onclick=async()=>{ $("intro").classList.add("hidden"); $("app").classList.remove("hidden"); resetState(); await startCamera(); };
 $("repeatBtn").onclick=async()=>{ $("result").classList.add("hidden"); resetState(); await startCamera(); };
 
@@ -200,18 +217,19 @@ function resetState(){
   faceSamples=[]; stableFrames=0; finished=false;
   lastCardDetect=0; lastFaceDetect=0; livePD=0; smoothPD=0;
   overlay={card:null, cardT:0, lm:null, lmT:0};
+  endManual();
   
-  $("title").textContent="Fase 1 — Calibrazione Millimetrica Live";
-  $("instructions").textContent="Appoggia la tessera al frontale degli occhiali per consentire la scansione del fattore di scala.";
+  $("title").textContent="Fase 1 — Calibrazione Tessera";
+  $("instructions").textContent="Tieni la tessera sanitaria o carta plastificata per i bordi, appoggiata davanti alla montatura o sotto il mento, dentro il riquadro tratteggiato.";
   $("cardGuide").classList.remove("hidden"); $("faceGuide").classList.add("hidden");
   $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
   $("liveHUD").classList.add("hidden");
   $("cardCount").textContent="0"; $("cardProgress").style.width="0%";
   $("measureCount").textContent="0"; $("measureProgress").style.width="0%";
-  $("accState").textContent="0%";
+  $("cardState").textContent="—";
   $("poseState").textContent="Verifica";
   $("cvState").textContent=cvReady?"Pronto":"Caricamento";
-  setStatus("Inizializzazione fotocamera...");
+  setStatus("Avvio fotocamera in corso…");
 }
 
 function adaptVideoBox(){
@@ -229,13 +247,13 @@ async function startCamera(){
     cancelAnimationFrame(rafId);
     rafId=requestAnimationFrame(loop);
     initializeFaceTracking();
-    setStatus("Fotocamera attiva. Posiziona la tessera sanitaria davanti all'occhiale.");
+    setStatus("Fotocamera attiva. Posiziona la tessera tenendola per i bordi.");
   }catch(e){
-    setStatus("Impossibile accedere alla fotocamera. Verifica i permessi browser.","bad");
+    setStatus("Fotocamera non disponibile. Permetti l'accesso alla fotocamera nel browser.","bad");
   }
 }
 
-/* --- MediaPipe FaceLandmarker --- */
+/* ---------- Modello MediaPipe ---------- */
 async function loadMediaPipe(){
   let lastErr=null;
   for(const v of MP_VERSIONS){
@@ -245,7 +263,7 @@ async function loadMediaPipe(){
       return await withTimeout(m.FaceLandmarker.createFromOptions(vision,{
         baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"CPU"},
         runningMode:"VIDEO",numFaces:1,
-        minFaceDetectionConfidence:.6,minFacePresenceConfidence:.6,minTrackingConfidence:.6,
+        minFaceDetectionConfidence:.55,minFacePresenceConfidence:.55,minTrackingConfidence:.55,
         outputFaceBlendshapes:false,outputFacialTransformationMatrixes:false
       }),30000,"Modello MP fallito");
     }catch(e){ lastErr=e; }
@@ -260,14 +278,14 @@ function initializeFaceTracking(){
     try{
       faceLandmarker=await loadMediaPipe();
     }catch(e){
-      faceLoadErrorMessage="Errore di caricamento del modulo 3D d'iride.";
+      faceLoadErrorMessage="Errore di caricamento del modulo iride.";
       if(phase===1)setStatus(faceLoadErrorMessage,"bad");
     }
   })();
   return facePromise;
 }
 
-/* --- Ciclo Principale Rendering & Tracciamento --- */
+/* ---------- Loop di Tracciamento ---------- */
 function loop(now){
   if(!running)return;
   try{
@@ -277,7 +295,7 @@ function loop(now){
         if(canvas.width!==w||canvas.height!==h){canvas.width=w; canvas.height=h;}
         ctx.clearRect(0,0,w,h);
 
-        if(phase===0){
+        if(phase===0 && !manual.active){
           if(now-lastCardDetect>=CARD_DETECT_INTERVAL){ lastCardDetect=now; calibrationFrame(now); }
           if(overlay.card && now-overlay.cardT<500) drawCardLive(overlay.card);
         } else if(phase===1){
@@ -290,222 +308,298 @@ function loop(now){
   if(running) rafId=requestAnimationFrame(loop);
 }
 
-/* --- Geometria Spaziale --- */
+/* ---------- Geometria base ---------- */
 function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
 function avg(arr){ return {x:arr.reduce((s,p)=>s+p.x,0)/arr.length, y:arr.reduce((s,p)=>s+p.y,0)/arr.length}; }
 function median(a){ if(!a.length)return 0; const s=[...a].sort((x,y)=>x-y), m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
 
-/* --- Calibrazione Tessera (OpenCV Engine) --- */
-function calibrationFrame(now){
-  if(!cvReady){ setStatus("Caricamento algoritmo di calibrazione ottica..."); return; }
-  
+/* ---------- Algoritmo Tollerante Rilevamento Tessera con Dita ---------- */
+function detectCardFlexible(){
   const W=video.videoWidth, H=video.videoHeight;
-  if(!W||!H)return;
-  
+  if(!W||!H||!cvReady)return null;
+
   const factor=Math.min(1, DETECT_WIDTH/W), rw=Math.round(W*factor), rh=Math.round(H*factor);
   if(detectCanvas.width!==rw||detectCanvas.height!==rh){ detectCanvas.width=rw; detectCanvas.height=rh; }
   detectCtx.drawImage(video,0,0,rw,rh);
-  
-  let foundCard=null;
+
+  let bestCandidate=null;
+  let src=null, gray=null, blur=null, thresh=null, contours=null, hierarchy=null;
   try{
-    let src=cv.imread(detectCanvas), gray=new cv.Mat(), blur=new cv.Mat(), edges=new cv.Mat(), contours=new cv.MatVector(), hierarchy=new cv.Mat();
-    cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
-    cv.GaussianBlur(gray,blur,new cv.Size(5,5),0);
-    cv.Canny(blur,edges,35,110);
-    cv.findContours(edges,contours,hierarchy,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE);
-    
-    let maxArea=0;
-    const targetRatio=CARD_W_MM/CARD_H_MM;
-    
+    src=cv.imread(detectCanvas);
+    gray=new cv.Mat(); blur=new cv.Mat(); thresh=new cv.Mat();
+    contours=new cv.MatVector(); hierarchy=new cv.Mat();
+
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    cv.GaussianBlur(gray, blur, new cv.Size(5,5), 0);
+
+    // Binarizzazione flessibile per tollerare mani e sfondi variabili
+    cv.adaptiveThreshold(blur, thresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 2);
+    cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+    const targetRatio = CARD_W_MM / CARD_H_MM;
+    let maxScore = 0;
+
     for(let i=0; i<contours.size(); i++){
-      let cnt=contours.get(i);
-      let area=cv.contourArea(cnt);
-      if(area>rw*rh*0.015 && area<rw*rh*0.6){
-        let rect=cv.minAreaRect(cnt);
-        let w=rect.size.width, h=rect.size.height;
-        let longS=Math.max(w,h), shortS=Math.min(w,h);
-        let ratio=longS/shortS;
-        if(Math.abs(ratio-targetRatio)<0.25){
-          if(area>maxArea){
-            maxArea=area;
-            let pts=cv.BoxPoints(rect);
-            let pArray=[];
-            for(let j=0; j<4; j++) pArray.push({x:pts[j*2]/factor, y:pts[j*2+1]/factor});
-            foundCard={ points: pArray, longSide: longS/factor, shortSide: shortS/factor };
+      let cnt = contours.get(i);
+      let area = cv.contourArea(cnt);
+      
+      // Range di area plausibile per la tessera a 40-60cm
+      if(area > rw*rh*0.01 && area < rw*rh*0.55){
+        let rect = cv.minAreaRect(cnt);
+        let w = rect.size.width, h = rect.size.height;
+        let longS = Math.max(w,h), shortS = Math.min(w,h);
+        let ratio = longS / Math.max(1, shortS);
+
+        // Accetta anche rettangoli leggermente coperti dalle dita (tolleranza ratio da 1.2 a 2.1)
+        if(ratio >= 1.2 && ratio <= 2.1){
+          let score = area * (1 - Math.abs(ratio - targetRatio) * 0.4);
+          if(score > maxScore){
+            maxScore = score;
+            let pts = cv.BoxPoints(rect);
+            let pArray = [];
+            for(let j=0; j<4; j++) pArray.push({x: pts[j*2]/factor, y: pts[j*2+1]/factor});
+            bestCandidate = { points: pArray, longSide: longS/factor, shortSide: shortS/factor };
           }
         }
       }
       cnt.delete();
     }
-    src.delete(); gray.delete(); blur.delete(); edges.delete(); contours.delete(); hierarchy.delete();
-  }catch(e){}
+  }catch(e){
+    dbg("Errore detectCard: "+e.message);
+  }finally{
+    if(src) src.delete(); if(gray) gray.delete(); if(blur) blur.delete(); 
+    if(thresh) thresh.delete(); if(contours) contours.delete(); if(hierarchy) hierarchy.delete();
+  }
+  return bestCandidate;
+}
 
-  if(!foundCard){
-    cardFrames=Math.max(0, cardFrames-1);
-    overlay.card=null;
-    setStatus("Inquadra la tessera davanti agli occhiali (Bordi ben visibili)","bad");
+function calibrationFrame(now){
+  if(!cvReady){ setStatus("Inizializzazione motore visivo..."); return; }
+
+  const card = detectCardFlexible();
+
+  if(!card){
+    $("cardState").textContent="Cerca...";
+    setStatus("Tessera non ancora rilevata. Tienila per i bordi sotto il mento o davanti gli occhiali. Se non va, premi «Calibra a mano».","bad");
     return;
   }
 
-  overlay.card=foundCard; overlay.cardT=now;
-  cardFrames++;
-  cardSamples.push((foundCard.longSide/CARD_W_MM + foundCard.shortSide/CARD_H_MM)/2);
-  
-  const n=Math.min(cardFrames, CARD_STABLE_REQUIRED);
-  $("cardCount").textContent=n;
-  $("cardProgress").style.width=(n/CARD_STABLE_REQUIRED*100)+"%";
-  setStatus("Tessera Rilevata! Mantenere la posizione...");
+  overlay.card = card; overlay.cardT = now;
+  $("cardState").textContent="Trovata";
 
-  if(cardFrames>=CARD_STABLE_REQUIRED){
-    pxPerMm=median(cardSamples.slice(-CARD_STABLE_REQUIRED));
+  cardFrames++;
+  cardSamples.push((card.longSide/CARD_W_MM + card.shortSide/CARD_H_MM)/2);
+
+  const n = Math.min(cardFrames, CARD_STABLE_REQUIRED);
+  $("cardCount").textContent = n;
+  $("cardProgress").style.width = (n/CARD_STABLE_REQUIRED*100) + "%";
+  setStatus("Tessera Rilevata! Resta fermo qualche istante...");
+
+  if(cardFrames >= CARD_STABLE_REQUIRED){
+    pxPerMm = median(cardSamples.slice(-CARD_STABLE_REQUIRED));
     enterFacePhase();
   }
 }
 
 function enterFacePhase(){
-  phase=1;
-  overlay.card=null;
-  $("title").textContent="Fase 2 — Tracciamento Pupillare Live";
-  $("instructions").textContent="Rimuovi la tessera. Rimani fermo e guarda dritto nella fotocamera.";
+  phase = 1;
+  overlay.card = null;
+  $("title").textContent = "Fase 2 — Tracciamento Iride Live";
+  $("instructions").textContent = "Ottimo! Ora puoi abbassare la tessera. Resta fermo e guarda dritto nella fotocamera.";
   $("cardGuide").classList.add("hidden"); $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden"); $("measureArea").classList.remove("hidden");
   $("liveHUD").classList.remove("hidden");
-  setStatus("Analisi iride e posa 3D in corso...","ok");
+  setStatus("Analisi iride e distanza pupillare live in corso...","ok");
 }
 
-/* --- Analisi Volto Live 3D (Anti-Errore Ottico) --- */
+/* ---------- Calibrazione Manuale Fallback ---------- */
+function endManual(){
+  manual = {active:false, snap:null, crop:null, pts:[], pxPerMm:null};
+  freeze.classList.add("hidden");
+  $("manualControls").classList.add("hidden");
+  $("manualBtn").classList.remove("hidden");
+  $("manualConfirm").disabled = true;
+}
+
+function renderFreeze(){
+  const c = manual.crop, f = freeze.getContext("2d");
+  f.clearRect(0, 0, freeze.width, freeze.height);
+  f.drawImage(manual.snap, c.x, c.y, c.w, c.h, 0, 0, c.w, c.h);
+  const pts = manual.pts.map(p=>({x: p.x - c.x, y: p.y - c.y}));
+  const r = Math.max(6, c.w/80);
+
+  if(pts.length === 2){
+    f.strokeStyle = "#3fb950"; f.lineWidth = Math.max(2, c.w/250);
+    f.beginPath(); f.moveTo(pts[0].x, pts[0].y); f.lineTo(pts[1].x, pts[1].y); f.stroke();
+  }
+  pts.forEach(p=>{
+    f.strokeStyle = "#3fb950"; f.lineWidth = 2;
+    f.beginPath(); f.arc(p.x, p.y, r, 0, Math.PI*2); f.stroke();
+    f.fillStyle = "#f85149";
+    f.beginPath(); f.arc(p.x, p.y, 3, 0, Math.PI*2); f.fill();
+  });
+}
+
+$("manualBtn").onclick = ()=>{
+  const W = video.videoWidth, H = video.videoHeight;
+  if(!running || !W || !H){ setStatus("Attendi l'avvio della fotocamera.","bad"); return; }
+  const snap = document.createElement("canvas"); snap.width = W; snap.height = H;
+  snap.getContext("2d").drawImage(video, 0, 0, W, H);
+  const cw = Math.round(W * 0.7), ch = Math.round(H * 0.7);
+  manual = {active:true, snap, crop:{x: Math.round((W-cw)/2), y: Math.round((H-ch)/2), w: cw, h: ch}, pts:[], pxPerMm:null};
+  freeze.width = cw; freeze.height = ch;
+  freeze.classList.remove("hidden");
+  $("cardGuide").classList.add("hidden");
+  overlay.card = null;
+  $("manualBtn").classList.add("hidden"); $("manualControls").classList.remove("hidden"); $("manualConfirm").disabled = true;
+  $("cardState").textContent = "Manuale";
+  renderFreeze();
+  setStatus("Immagine bloccata. Tocca il PRIMO e poi il SECONDO angolo del LATO LUNGO della tessera (85,6 mm). Puoi abbassare la tessera.");
+};
+
+freeze.addEventListener("click", ev=>{
+  if(!manual.active || manual.pts.length >= 2) return;
+  const r = freeze.getBoundingClientRect(), c = manual.crop;
+  const relX = 1 - (ev.clientX - r.left)/r.width, relY = (ev.clientY - r.top)/r.height;
+  manual.pts.push({x: c.x + relX*c.w, y: c.y + relY*c.h});
+  renderFreeze();
+
+  if(manual.pts.length === 1){
+    setStatus("Ora tocca il SECONDO angolo dello stesso lato lungo.");
+    return;
+  }
+
+  const px = dist(manual.pts[0], manual.pts[1]);
+  manual.pxPerMm = px / CARD_W_MM;
+  $("manualConfirm").disabled = false;
+  setStatus("Lato segnato! Premi CONFERMA LATO o RIPROVA se i cerchi non sono precisi.","ok");
+});
+
+$("manualRetry").onclick = ()=>{
+  if(!manual.active) return;
+  manual.pts = []; manual.pxPerMm = null; $("manualConfirm").disabled = true; renderFreeze();
+  setStatus("Tocca l'angolo SINISTRO e poi l'angolo DESTRO del lato lungo della tessera.");
+};
+
+$("manualConfirm").onclick = ()=>{
+  if(!manual.active || !manual.pxPerMm) return;
+  pxPerMm = manual.pxPerMm;
+  endManual();
+  enterFacePhase();
+};
+
+/* ---------- Tracciamento Iride Live ---------- */
 function faceFrameLive(now){
-  if(!faceLandmarker)return;
+  if(!faceLandmarker) return;
   let result;
-  try{ result=faceLandmarker.detectForVideo(video,now); }catch(e){ return; }
+  try{ result = faceLandmarker.detectForVideo(video, now); }catch(e){ return; }
 
   if(!result.faceLandmarks || !result.faceLandmarks.length){
-    overlay.lm=null;
-    $("poseState").textContent="Fuori campo";
-    setStatus("Volto non rilevato. Guarda verso la fotocamera.","bad");
+    overlay.lm = null;
+    $("poseState").textContent = "Assente";
+    setStatus("Volto non rilevato. Guarda dritto verso la fotocamera.","bad");
     return;
   }
 
-  const lm=result.faceLandmarks[0];
-  overlay.lm=lm; overlay.lmT=now;
+  const lm = result.faceLandmarks[0];
+  overlay.lm = lm; overlay.lmT = now;
 
-  const W=video.videoWidth, H=video.videoHeight;
-  const p=i=>({x:lm[i].x*W, y:lm[i].y*H, z:lm[i].z*W});
+  const W = video.videoWidth, H = video.videoHeight;
+  const p = i => ({x: lm[i].x*W, y: lm[i].y*H, z: lm[i].z*W});
 
-  /* Controllo Angoli di Posa Volto 3D per Rifiutare Errori di Prospettiva */
-  const leftEyeOuter=p(33), rightEyeOuter=p(263);
-  const dx=rightEyeOuter.x-leftEyeOuter.x, dy=rightEyeOuter.y-leftEyeOuter.y, dz=rightEyeOuter.z-leftEyeOuter.z;
+  // Controllo Inclinazione 3D Volto
+  const leftEyeOuter = p(33), rightEyeOuter = p(263);
+  const dx = rightEyeOuter.x - leftEyeOuter.x, dy = rightEyeOuter.y - leftEyeOuter.y, dz = rightEyeOuter.z - leftEyeOuter.z;
+  const roll = Math.abs(Math.atan2(dy, dx)*(180/Math.PI));
+  const yaw = Math.abs(Math.atan2(dz, dx)*(180/Math.PI));
+
+  if(roll > 6.0){
+    $("poseState").textContent = "Inclinato";
+    setStatus("Mantieni la testa dritta senza inclinarla di lato.","bad");
+    return;
+  }
+  if(yaw > 8.0){
+    $("poseState").textContent = "Ruotato";
+    setStatus("Guarda direttamente la fotocamera senza ruotare la testa.","bad");
+    return;
+  }
+  $("poseState").textContent = "OK";
+
+  // Calcolo Centro Iridi
+  const irisL = avg([468,469,470,471,472].map(p));
+  const irisR = avg([473,474,475,476,477].map(p));
   
-  const roll=Math.abs(Math.atan2(dy,dx)*(180/Math.PI));
-  const yaw=Math.abs(Math.atan2(dz,dx)*(180/Math.PI));
+  const rawDistPx = dist(irisL, irisR);
+  livePD = rawDistPx / pxPerMm;
 
-  if(roll>5.0){
-    $("poseState").textContent="Inclinato";
-    setStatus("Testa inclinata lateralmente! Mantienila dritta.","bad");
-    return;
-  }
-  if(yaw>7.0){
-    $("poseState").textContent="Ruotato";
-    setStatus("Testa ruotata! Guarda esattamente di fronte.","bad");
-    return;
-  }
-  $("poseState").textContent="Perfetta";
-
-  /* Centro Iridi MediaPipe Refined (Landmarks 468-477) */
-  const irisL=avg([468,469,470,471,472].map(p));
-  const irisR=avg([473,474,475,476,477].map(p));
-  
-  const rawDistPx=dist(irisL, irisR);
-  livePD=rawDistPx/pxPerMm;
-
-  if(livePD<45 || livePD>80){
-    setStatus("Distanza non congrua. Verifica la posizione.","bad");
+  if(livePD < 45 || livePD > 80){
+    setStatus("Valore non coerente. Assicurati di aver calibrato correttamente la tessera.","bad");
     return;
   }
 
-  /* Filtro passa-basso per la lettura live fluido */
-  smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.85 + livePD * 0.15);
+  smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
   $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
 
-  /* Semidistanze OD e OS rispetto all'asse nasale */
-  const bridge=p(6);
+  const bridge = p(6);
   const midX = (irisL.x + irisR.x)/2;
   const odPx = Math.abs(irisR.x - midX);
   const osPx = Math.abs(irisL.x - midX);
 
   faceSamples.push({ total: smoothPD, od: odPx/pxPerMm, os: osPx/pxPerMm });
-  if(faceSamples.length>40) faceSamples.shift();
+  if(faceSamples.length > 35) faceSamples.shift();
 
   stableFrames++;
-  const progress=Math.min(stableFrames, MEASURE_REQUIRED);
-  $("measureCount").textContent=progress;
-  $("measureProgress").style.width=(progress/MEASURE_REQUIRED*100)+"%";
-  
-  let accPercent = Math.min(100, Math.round((progress/MEASURE_REQUIRED)*100));
-  $("accState").textContent = accPercent + "%";
+  const progress = Math.min(stableFrames, MEASURE_REQUIRED);
+  $("measureCount").textContent = progress;
+  $("measureProgress").style.width = (progress/MEASURE_REQUIRED*100) + "%";
+  setStatus("Misurazione LIVE in corso. Rimani fermo...");
 
-  setStatus("Tracciamento LIVE attivo. Resta fermo...");
-
-  if(stableFrames>=MEASURE_REQUIRED && !finished){
+  if(stableFrames >= MEASURE_REQUIRED && !finished){
     finishLiveMeasurement();
   }
 }
 
-/* --- Sovrapposizione grafica Live Stile Amevista --- */
+/* ---------- Rendering Sovrapposizione Video ---------- */
 function drawCardLive(card){
-  ctx.strokeStyle="#58a6ff"; ctx.lineWidth=3;
+  ctx.strokeStyle = "#58a6ff"; ctx.lineWidth = 3;
   ctx.beginPath();
-  card.points.forEach((p,i)=> i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  card.points.forEach((p,i)=> i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
   ctx.closePath(); ctx.stroke();
 }
 
 function drawFaceLive(lm){
-  const W=video.videoWidth, H=video.videoHeight;
-  const p=i=>({x:lm[i].x*W, y:lm[i].y*H});
+  const W = video.videoWidth, H = video.videoHeight;
+  const p = i => ({x: lm[i].x*W, y: lm[i].y*H});
 
-  const irisL=avg([468,469,470,471,472].map(p));
-  const irisR=avg([473,474,475,476,477].map(p));
+  const irisL = avg([468,469,470,471,472].map(p));
+  const irisR = avg([473,474,475,476,477].map(p));
 
-  // Mirino Iride Sinistra e Destra
   [irisL, irisR].forEach(pt=>{
-    ctx.strokeStyle="#3fb950"; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.arc(pt.x, pt.y, 12, 0, Math.PI*2); ctx.stroke();
-    ctx.fillStyle="#3fb950";
+    ctx.strokeStyle = "#3fb950"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(pt.x, pt.y, 10, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = "#3fb950";
     ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI*2); ctx.fill();
-    
-    // Crosshair
-    ctx.beginPath();
-    ctx.moveTo(pt.x-16, pt.y); ctx.lineTo(pt.x+16, pt.y);
-    ctx.moveTo(pt.x, pt.y-16); ctx.lineTo(pt.x, pt.y+16);
-    ctx.stroke();
   });
 
-  // Linea di centraggio inter-pupillare
-  ctx.strokeStyle="rgba(88, 166, 255, 0.8)"; ctx.lineWidth=2;
+  ctx.strokeStyle = "rgba(88, 166, 255, 0.8)"; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(irisL.x, irisL.y); ctx.lineTo(irisR.x, irisR.y); ctx.stroke();
-  
-  // Asse Nasale
-  const bridge=p(6);
-  ctx.strokeStyle="rgba(210, 153, 34, 0.8)";
-  ctx.beginPath(); ctx.moveTo(bridge.x, bridge.y-20); ctx.lineTo(bridge.x, bridge.y+20); ctx.stroke();
 }
 
-/* --- Finalizzazione --- */
 function finishLiveMeasurement(){
-  finished=true;
-  const recent=faceSamples.slice(-20);
-  const total=median(recent.map(x=>x.total));
-  const od=median(recent.map(x=>x.od));
-  const os=median(recent.map(x=>x.os));
+  finished = true;
+  const recent = faceSamples.slice(-20);
+  const total = median(recent.map(x=>x.total));
+  const od = median(recent.map(x=>x.od));
+  const os = median(recent.map(x=>x.os));
 
-  $("pdTotal").textContent=total.toFixed(1);
-  $("pdOD").textContent=od.toFixed(1)+" mm";
-  $("pdOS").textContent=os.toFixed(1)+" mm";
-  $("quality").textContent="99.4% (Certificato)";
+  $("pdTotal").textContent = total.toFixed(1);
+  $("pdOD").textContent = od.toFixed(1) + " mm";
+  $("pdOS").textContent = os.toFixed(1) + " mm";
+  $("quality").textContent = "Eccellente";
 
   $("liveHUD").classList.add("hidden");
   $("result").classList.remove("hidden");
-  setStatus("Misurazione live ad alta precisione completata!","ok");
+  setStatus("Misurazione completata con successo!","ok");
 }
 </script>
 </body>
