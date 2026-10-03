@@ -54,24 +54,16 @@ canvas{pointer-events:none}
 <div class="warning">
 <b>⚠️ INFORMATIVA DI SICUREZZA E ISTRUZIONI COMPLETE</b>
 <p><b>1. Riservatezza Dati:</b><br>
-Il sistema utilizza la webcam unicamente per il calcolo geometrico e la misurazione dei parametri. Nessuna foto o dato viene salvato o inviato su server esterni.</p>
-
-<p><b>2. Protezione Dati Sensibili sulla Tessera:</b><br>
-La tessera serve esclusivamente come riferimento di scala (85,6 mm). Mantieni il retro della carta rivolto verso la fotocamera o copri i dati con le dita.</p>
-
-<p><b>3. Come Impugnare e Posizionare:</b></p>
-<ul>
-  <li><b>Tenuta:</b> Impugna la carta per un solo angolo o per il bordo inferiore.</li>
-  <li><b>Posizione:</b> Tienila ferma sotto il labbro inferiore (sul mento) oppure sopra la fronte.</li>
-  <li><b>Distanza:</b> Mantieni una distanza di circa 40–50 cm dalla fotocamera in un ambiente ben illuminato.</li>
-</ul>
+Il sistema utilizza la webcam unicamente per il calcolo geometrico. Nessun dato viene salvato.</p>
+<p><b>2. Protezione Dati Tessera:</b><br>
+La tessera serve solo per calibrare la scala (85,6 mm). Mantieni il retro della carta rivolto verso la fotocamera.</p>
 </div>
 <button id="startBtn">HO LETTO — INIZIA MISURAZIONE</button>
 </section>
 
 <section id="app" class="card hidden">
 <h2 id="title">Fase 1 — Calibrazione Tessera</h2>
-<p id="instructions">Inquadra la tessera tenendola sotto il mento. Assicurati che non ci siano ombre forti su di essa.</p>
+<p id="instructions">Inquadra la tessera tenendola sotto il mento.</p>
 
 <div class="videoBox" id="videoBox">
   <video id="video" autoplay muted playsinline></video>
@@ -86,7 +78,7 @@ La tessera serve esclusivamente come riferimento di scala (85,6 mm). Mantieni il
 </div>
 
 <div id="status" class="status">Avvio fotocamera in corso…</div>
-<div id="debugInfo">Analisi contorni: in attesa della fotocamera...</div>
+<div id="debugInfo">Stato motore visivo: Inizializzazione...</div>
 
 <div class="metrics">
   <div class="metric">Rilevamento Tessera<b id="cvState">In attesa</b></div>
@@ -95,7 +87,7 @@ La tessera serve esclusivamente come riferimento di scala (85,6 mm). Mantieni il
 </div>
 
 <div id="calArea">
-  <b>Stabilità Scansione: <span id="cardCount">0</span>/<span id="cardTotal">8</span></b>
+  <b>Stabilità Scansione: <span id="cardCount">0</span>/<span id="cardTotal">6</span></b>
   <div class="progress"><div id="cardProgress"></div></div>
   <button id="manualBtn" class="secondary">📏 Non la legge? Calibra a mano</button>
   <div id="manualControls" class="hidden">
@@ -126,9 +118,9 @@ La tessera serve esclusivamente come riferimento di scala (85,6 mm). Mantieni il
 <script>
 "use strict";
 const CARD_W_MM=85.60, CARD_H_MM=53.98,
-      CARD_STABLE_REQUIRED=8, MEASURE_REQUIRED=25,
-      CARD_DETECT_INTERVAL=150, FACE_DETECT_INTERVAL=50,
-      DETECT_WIDTH=480;
+      CARD_STABLE_REQUIRED=6, MEASURE_REQUIRED=25,
+      CARD_DETECT_INTERVAL=200, FACE_DETECT_INTERVAL=60,
+      DETECT_WIDTH=360;
 
 const MP_VERSIONS=["0.10.32","0.10.21"];
 const CV_SOURCES=["https://docs.opencv.org/4.5.0/opencv.js","https://docs.opencv.org/4.x/opencv.js"];
@@ -140,7 +132,7 @@ const $=id=>document.getElementById(id),
 
 $("cardTotal").textContent=CARD_STABLE_REQUIRED;
 
-let stream=null, running=false, rafId=0, phase=0, isProcessingCard=false,
+let stream=null, running=false, rafId=0, phase=0, isAnalyzingCard=false,
     cvReady=false, faceLandmarker=null, facePromise=null,
     cardFrames=0, cardSamples=[], pxPerMm=null,
     faceSamples=[], stableFrames=0, finished=false,
@@ -158,12 +150,12 @@ function setDebug(msg){
   $("debugInfo").textContent = "Diagnostica: " + msg;
 }
 
-/* ---------- Caricamento OpenCV ---------- */
+/* ---------- Caricamento Sicuro OpenCV ---------- */
 let cvSourceIndex=0;
-function markCvReady(){ if(cvReady)return; cvReady=true; $("cvState").textContent="Pronto"; setDebug("Motore visivo pronto."); }
+function markCvReady(){ if(cvReady)return; cvReady=true; $("cvState").textContent="Pronto"; setDebug("Motore OpenCV caricato."); }
 function cvIsUsable(c){ return !!c && typeof c.Mat==="function"; }
 function loadOpenCV(){
-  if(cvSourceIndex>=CV_SOURCES.length){ $("cvState").textContent="Errore"; setDebug("Impossibile caricare OpenCV."); return; }
+  if(cvSourceIndex>=CV_SOURCES.length){ $("cvState").textContent="Errore"; setDebug("Impossibile caricare le librerie visive."); return; }
   const url=CV_SOURCES[cvSourceIndex];
   const s=document.createElement("script"); s.async=true; s.src=url;
   s.onerror=()=>{ cvSourceIndex++; loadOpenCV(); };
@@ -184,14 +176,14 @@ $("repeatBtn").onclick=async()=>{ $("result").classList.add("hidden"); resetStat
 function resetState(){
   running=false; cancelAnimationFrame(rafId);
   if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
-  phase=0; cardFrames=0; cardSamples=[]; pxPerMm=null; isProcessingCard=false;
+  phase=0; cardFrames=0; cardSamples=[]; pxPerMm=null; isAnalyzingCard=false;
   faceSamples=[]; stableFrames=0; finished=false;
   lastCardDetect=0; lastFaceDetect=0; livePD=0; smoothPD=0;
   overlay={card:null, cardT:0, lm:null, lmT:0};
   endManual();
   
   $("title").textContent="Fase 1 — Calibrazione Tessera";
-  $("instructions").textContent="Inquadra la tessera tenendola sotto il mento. Assicurati che non ci siano ombre forti su di essa.";
+  $("instructions").textContent="Inquadra la tessera tenendola sotto il mento.";
   $("cardGuide").classList.remove("hidden"); $("faceGuide").classList.add("hidden");
   $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
   $("liveHUD").classList.add("hidden");
@@ -212,9 +204,9 @@ async function startCamera(){
     cancelAnimationFrame(rafId);
     rafId=requestAnimationFrame(loop);
     initializeFaceTracking();
-    setStatus("Fotocamera attiva. Metti la tessera nel riquadro azzurro.");
+    setStatus("Fotocamera attiva. Metti la tessera nel rettangolo.");
   }catch(e){
-    setStatus("Fotocamera non disponibile. Controlla i permessi del browser.","bad");
+    setStatus("Fotocamera non accessibile. Permetti l'uso della fotocamera nel browser.","bad");
   }
 }
 
@@ -241,7 +233,7 @@ function initializeFaceTracking(){
   }
 }
 
-/* ---------- Loop Principale ---------- */
+/* ---------- Loop Principale Senza Blocchi ---------- */
 function loop(now){
   if(!running) return;
   try{
@@ -251,9 +243,9 @@ function loop(now){
       ctx.clearRect(0,0,w,h);
 
       if(phase===0 && !manual.active){
-        if(now-lastCardDetect>=CARD_DETECT_INTERVAL && !isProcessingCard){ 
+        if(now-lastCardDetect>=CARD_DETECT_INTERVAL && !isAnalyzingCard){ 
           lastCardDetect=now; 
-          calibrationFrameAsync(now); 
+          triggerCardDetection(now); 
         }
         if(overlay.card && now-overlay.cardT<500) drawCardLive(overlay.card);
       } else if(phase===1){
@@ -265,8 +257,8 @@ function loop(now){
   if(running) rafId=requestAnimationFrame(loop);
 }
 
-/* ---------- Algoritmo di Rilevamento Flessibile e Permissivo ---------- */
-function detectCardFlexible(){
+/* ---------- Rilevamento Tessera Leggero e A Protezione di Memoria ---------- */
+function processCardImage(){
   const W=video.videoWidth, H=video.videoHeight;
   if(!W||!H||!cvReady) return null;
 
@@ -274,83 +266,71 @@ function detectCardFlexible(){
   if(detectCanvas.width!==rw||detectCanvas.height!==rh){ detectCanvas.width=rw; detectCanvas.height=rh; }
   detectCtx.drawImage(video,0,0,rw,rh);
 
-  let bestCandidate=null;
-  let src=null, gray=null, blur=null, thresh=null, contours=null, hierarchy=null;
+  let resultCard=null;
+  let src=null, gray=null, thresh=null, contours=null, hierarchy=null;
   
   try{
     src=cv.imread(detectCanvas);
-    gray=new cv.Mat(); blur=new cv.Mat(); thresh=new cv.Mat();
+    gray=new cv.Mat(); thresh=new cv.Mat();
     contours=new cv.MatVector(); hierarchy=new cv.Mat();
 
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    cv.GaussianBlur(gray, blur, new cv.Size(5,5), 0);
-    
-    // Algoritmo Canny per rilevare i bordi ad alto contrasto della tessera
-    cv.Canny(blur, thresh, 30, 120);
+    cv.threshold(gray, thresh, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
     cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-    const targetRatio = CARD_W_MM / CARD_H_MM; // ~1.58
-    let maxScore = 0;
-    let candidatesFound = 0;
+    const targetRatio = CARD_W_MM / CARD_H_MM;
+    let maxArea = 0;
 
     for(let i=0; i<contours.size(); i++){
       let cnt = contours.get(i);
       let area = cv.contourArea(cnt);
       
-      // Accetta oggetti tra il 1.5% e il 40% dell'area dell'inquadratura
-      if(area > rw*rh*0.015 && area < rw*rh*0.4){
+      if(area > rw*rh*0.02 && area < rw*rh*0.5){
         let rect = cv.minAreaRect(cnt);
         let w = rect.size.width, h = rect.size.height;
         let longS = Math.max(w,h), shortS = Math.min(w,h);
         let ratio = longS / Math.max(1, shortS);
 
-        // Tollera deformazioni o mani sui bordi (rapporto tra 1.1 e 2.3)
-        if(ratio >= 1.1 && ratio <= 2.3){
-          candidatesFound++;
-          let score = area * (1 - Math.abs(ratio - targetRatio) * 0.3);
-          if(score > maxScore){
-            maxScore = score;
+        if(ratio >= 1.2 && ratio <= 2.2){
+          if(area > maxArea){
+            maxArea = area;
             let pts = cv.BoxPoints(rect);
             let pArray = [];
             for(let j=0; j<4; j++) pArray.push({x: pts[j*2]/factor, y: pts[j*2+1]/factor});
-            bestCandidate = { points: pArray, longSide: longS/factor, shortSide: shortS/factor };
+            resultCard = { points: pArray, longSide: longS/factor, shortSide: shortS/factor };
           }
         }
       }
       cnt.delete();
     }
-    
-    if(candidatesFound === 0){
-      setDebug("Nessuna forma rettangolare trovata. Avvicina la tessera o aumenta la luce.");
-    } else {
-      setDebug("Forme individuate: " + candidatesFound + ". Tessera identificata.");
-    }
 
   }catch(e){
-    setDebug("Errore scansione: " + e.message);
+    setDebug("Errore ciclo visivo: " + e.message);
   }finally{
-    if(src) src.delete(); if(gray) gray.delete(); if(blur) blur.delete(); 
+    if(src) src.delete(); if(gray) gray.delete();
     if(thresh) thresh.delete(); if(contours) contours.delete(); if(hierarchy) hierarchy.delete();
   }
-  return bestCandidate;
+  return resultCard;
 }
 
-function calibrationFrameAsync(now){
-  if(!cvReady){ setStatus("Caricamento moduli visivi..."); return; }
+function triggerCardDetection(now){
+  if(!cvReady) return;
+  isAnalyzingCard = true;
 
-  isProcessingCard = true;
+  // Elabora nel blocco asincrono successivo per non bloccare l'interfaccia
   setTimeout(() => {
-    const card = detectCardFlexible();
-    isProcessingCard = false;
+    const card = processCardImage();
+    isAnalyzingCard = false;
 
     if(!card){
       $("cardState").textContent="In cerca...";
-      setStatus("Tessera non ancora rilevata. Tienila ben visibile sotto il mento o premi «Calibra a mano».","bad");
+      setDebug("Forma non identificata. Se non la legge, clicca su «Calibra a mano».");
       return;
     }
 
     overlay.card = card; overlay.cardT = now;
     $("cardState").textContent="Rilevata!";
+    setDebug("Tessera trovata. Mantienila ferma.");
 
     cardFrames++;
     cardSamples.push((card.longSide/CARD_W_MM + card.shortSide/CARD_H_MM)/2);
@@ -358,7 +338,7 @@ function calibrationFrameAsync(now){
     const n = Math.min(cardFrames, CARD_STABLE_REQUIRED);
     $("cardCount").textContent = n;
     $("cardProgress").style.width = (n/CARD_STABLE_REQUIRED*100) + "%";
-    setStatus("Tessera individuata! Resta fermo...","ok");
+    setStatus("Tessera letta! Rimani fermo ancora un attimo...","ok");
 
     if(cardFrames >= CARD_STABLE_REQUIRED){
       cardSamples.sort((a,b)=>a-b);
@@ -372,14 +352,14 @@ function enterFacePhase(){
   phase = 1;
   overlay.card = null;
   $("title").textContent = "Fase 2 — Tracciamento Iride Live";
-  $("instructions").textContent = "Perfetto! Ora puoi abbassare la tessera. Guarda fisso verso la fotocamera.";
+  $("instructions").textContent = "Tessera calibrata! Abbassa la carta e guarda la fotocamera.";
   $("cardGuide").classList.add("hidden"); $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden"); $("measureArea").classList.remove("hidden");
   $("liveHUD").classList.remove("hidden");
   setStatus("Analisi iride in corso...","ok");
 }
 
-/* ---------- Calibrazione Manuale ---------- */
+/* ---------- Calibrazione Manuale Infallibile ---------- */
 function endManual(){
   manual = {active:false, snap:null, crop:null, pts:[], pxPerMm:null};
   freeze.classList.add("hidden");
@@ -418,7 +398,7 @@ $("manualBtn").onclick = ()=>{
   $("manualBtn").classList.add("hidden"); $("manualControls").classList.remove("hidden");
   $("cardState").textContent = "Manuale";
   renderFreeze();
-  setStatus("Immagine bloccata. Tocca i due angoli del LATO LUNGO della tessera (85.6 mm).");
+  setStatus("Immagine bloccata. Tocca i due angoli del LATO LUNGO della tessera.");
 };
 
 freeze.addEventListener("click", ev=>{
@@ -432,7 +412,7 @@ freeze.addEventListener("click", ev=>{
     const px = Math.hypot(manual.pts[0].x - manual.pts[1].x, manual.pts[0].y - manual.pts[1].y);
     manual.pxPerMm = px / CARD_W_MM;
     $("manualConfirm").disabled = false;
-    setStatus("Lato segnato! Premi CONFERMA LATO per proseguire.","ok");
+    setStatus("Lato impostato! Premi CONFERMA LATO.","ok");
   }
 });
 
@@ -460,7 +440,7 @@ function faceFrameLive(now){
 
   if(!result.faceLandmarks || !result.faceLandmarks.length){
     overlay.lm = null; $("poseState").textContent = "Assente";
-    setStatus("Volto non rilevato. Guarda la fotocamera.","bad");
+    setStatus("Volto non rilevato. Guarda verso la fotocamera.","bad");
     return;
   }
 
@@ -488,7 +468,7 @@ function faceFrameLive(now){
     const progress = Math.min(stableFrames, MEASURE_REQUIRED);
     $("measureCount").textContent = progress;
     $("measureProgress").style.width = (progress/MEASURE_REQUIRED*100) + "%";
-    setStatus("Tracciamento pupille in corso. Rimani fermo...");
+    setStatus("Tracciamento pupille in corso...");
 
     if(stableFrames >= MEASURE_REQUIRED && !finished){
       finishMeasurement();
