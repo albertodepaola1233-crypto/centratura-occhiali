@@ -2,2781 +2,864 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Centratura Occhiali</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Misurazione centratura occhiali</title>
 
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: #111;
-  color: white;
-  font-family: Arial, sans-serif;
-}
-
-.app {
-  width: 100%;
-  max-width: 900px;
-  margin: auto;
-  padding: 16px;
-}
-
-h1 {
-  margin: 0 0 6px;
-  font-size: 26px;
-}
-
-.subtitle {
-  color: #aaa;
-  margin-bottom: 15px;
-}
-
-.camera {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  background: black;
-  border-radius: 15px;
-}
-
-#video,
-#overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1);
-}
-
-#workCanvas {
-  display: none;
-}
-
-.status {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  z-index: 10;
-
-  padding: 11px 14px;
-
-  background: rgba(0,0,0,.78);
-  border-radius: 10px;
-
-  font-size: 15px;
-}
-
-.controls {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-button {
-  border: 0;
-  border-radius: 10px;
-  padding: 13px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-#startBtn {
-  background: white;
-  color: black;
-}
-
-#stopBtn {
-  background: #444;
-  color: white;
-}
-
-.panel {
-  margin-top: 14px;
-  padding: 15px;
-  background: #1d1d1d;
-  border-radius: 14px;
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  padding: 8px 0;
-  border-bottom: 1px solid #333;
-}
-
-.row:last-child {
-  border-bottom: none;
-}
-
-.label {
-  color: #999;
-}
-
-.value {
-  font-weight: bold;
-  text-align: right;
-}
-
-.warning {
-  color: #ffd400;
-}
-
-.success {
-  color: #00ff80;
-}
-
-.error {
-  color: #ff5555;
-}
-
-.progress {
-  margin-top: 14px;
-  width: 100%;
-  height: 10px;
-  background: #333;
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-#progressBar {
-  width: 0%;
-  height: 100%;
-  background: white;
-  transition: width .1s linear;
-}
-
-.instructions {
-  margin-top: 14px;
-  color: #ccc;
-  line-height: 1.45;
-}
-
-.result {
-  margin-top: 15px;
-  padding: 18px;
-  border-radius: 14px;
-  background: #242424;
-}
-
-.resultTitle {
-  color: #aaa;
-}
-
-.resultNumber {
-  font-size: 38px;
-  font-weight: bold;
-  margin: 5px 0 10px;
-}
-
-.small {
-  margin-top: 15px;
-  color: #777;
-  font-size: 12px;
-  line-height: 1.45;
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6f8;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.wrap{max-width:900px;margin:auto;padding:16px}
+.card{background:#fff;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 7px 26px #0000000c}
+h1{font-size:25px;margin:0 0 12px}
+h2{font-size:20px;margin:0 0 10px}
+p{line-height:1.5}
+.warning{background:#fff5d9;border:1px solid #e4c35a;border-radius:14px;padding:15px;margin:14px 0}
+button{border:0;border-radius:12px;padding:14px 18px;font-size:16px;font-weight:700;background:#111;color:#fff;cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}
+.secondary{background:#e8edf2;color:#111}
+.hidden{display:none!important}
+.videoBox{position:relative;width:100%;max-width:760px;margin:15px auto;background:#111;border-radius:16px;overflow:hidden;aspect-ratio:4/3}
+video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+canvas{pointer-events:none}
+.guide{position:absolute;inset:0;pointer-events:none}
+.cardGuide{position:absolute;width:72%;aspect-ratio:85.6/53.98;left:14%;top:30%;border:3px dashed white;border-radius:10px;box-shadow:0 0 0 9999px #0002}
+.faceGuide{position:absolute;width:48%;height:64%;left:26%;top:18%;border:3px dashed white;border-radius:45%;box-shadow:0 0 0 9999px #0002}
+.status{padding:13px 15px;border-radius:12px;background:#eef2f6;font-weight:650;margin:12px 0}
+.ok{background:#e5f7eb;color:#176b37}
+.bad{background:#fde9e9;color:#982626}
+.progress{height:11px;background:#e8ecf1;border-radius:20px;overflow:hidden;margin:10px 0}
+.progress div{height:100%;width:0;background:#111;transition:width .12s}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.metric{background:#f2f4f6;border-radius:12px;padding:13px;text-align:center}
+.metric b{display:block;font-size:22px;margin-top:5px}
+.small{font-size:13px;color:#68727d}
+.result{background:#eef7ff;border:1px solid #b9dafa;border-radius:15px;padding:16px;margin-top:14px}
+.big{font-size:34px;font-weight:800}
+@media(max-width:600px){
+ .wrap{padding:10px}
+ .card{padding:15px}
+ .metrics{grid-template-columns:1fr}
+ h1{font-size:22px}
 }
 </style>
 
-<!-- OPENCV -->
 <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
-
-<!-- MEDIAPIPE -->
 <script type="module">
 import {
-  FaceLandmarker,
-  FilesetResolver
+ FaceLandmarker,
+ FilesetResolver
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32";
 
-window.FaceLandmarker = FaceLandmarker;
-window.FilesetResolver = FilesetResolver;
+window.FaceLandmarker=FaceLandmarker;
+window.FilesetResolver=FilesetResolver;
 </script>
-
 </head>
 
 <body>
+<div class="wrap">
 
-<div class="app">
+<section id="intro" class="card">
+<h1>Misurazione della centratura</h1>
 
-<h1>Centratura Occhiali</h1>
+<div class="warning">
+<b>⚠️ IMPORTANTE — LEGGI PRIMA DI INIZIARE</b>
 
-<div class="subtitle">
-Calibrazione con carta bancaria e misurazione PD
+<p>Devi avere già <b>indossato l'occhiale che hai scelto</b>.</p>
+
+<p>Nella prima fase tieni una <b>tessera sanitaria davanti al viso</b>, nella posizione indicata sullo schermo. La tessera viene usata come riferimento per calibrare la misura in millimetri.</p>
+
+<p><b>Durante la calibrazione non muovere testa, corpo o tessera.</b> Mantieni la stessa posizione fino al completamento.</p>
+
+<p>Se ti muovi o sposti la tessera e prosegui comunque, la calibrazione potrebbe essere errata e le misure successive potrebbero non essere valide.</p>
+
+<p><b>Se la misurazione risulta errata perché non sono state rispettate le istruzioni, non sarà possibile richiedere il rimborso sulla base di tale misurazione.</b></p>
+
+<p class="small">La misura tramite fotocamera è indicativa e non sostituisce la misurazione professionale dell'ottico. Per lenti progressive, prescrizioni elevate o casi particolari è necessaria una verifica professionale.</p>
 </div>
 
-<div class="camera">
+<p><b>Prima di iniziare:</b> indossa l'occhiale, posiziona la tessera davanti al viso e preparati a rimanere fermo.</p>
 
-<video
-  id="video"
-  autoplay
-  playsinline
-  muted>
-</video>
+<button id="startBtn">HO LETTO E ACCETTO — INIZIA</button>
+</section>
 
-<canvas id="overlay"></canvas>
+<section id="app" class="card hidden">
 
-<div id="status" class="status">
-Premi "Avvia fotocamera".
+<h2 id="title">Fase 1 — Calibrazione</h2>
+
+<p id="instructions">Tieni la tessera sanitaria davanti al viso, tutta dentro il riquadro. Non muoverti.</p>
+
+<div class="videoBox">
+ <video id="video" autoplay muted playsinline></video>
+ <canvas id="overlay"></canvas>
+
+ <div id="cardGuide" class="guide">
+  <div class="cardGuide"></div>
+ </div>
+
+ <div id="faceGuide" class="guide hidden">
+  <div class="faceGuide"></div>
+ </div>
 </div>
 
+<div id="status" class="status">Avvio fotocamera…</div>
+
+<div class="metrics">
+ <div class="metric">OpenCV<b id="cvState">Caricamento</b></div>
+ <div class="metric">Volto<b id="faceState">—</b></div>
+ <div class="metric">Tessera<b id="cardState">—</b></div>
 </div>
 
-<canvas id="workCanvas"></canvas>
-
-<div class="controls">
-
-<button id="startBtn">
-Avvia fotocamera
-</button>
-
-<button id="stopBtn">
-Ferma
-</button>
-
+<div id="calArea">
+ <b>Stabilità tessera: <span id="cardCount">0</span>/60</b>
+ <div class="progress"><div id="cardProgress"></div></div>
+ <p class="small">La calibrazione avanza solo se OpenCV riconosce realmente un rettangolo con proporzioni compatibili con una tessera e la sua posizione resta stabile.</p>
 </div>
 
-<div class="panel">
-
-<div class="row">
-<span class="label">OpenCV</span>
-<span id="opencvStatus" class="value">
-Caricamento...
-</span>
+<div id="measureArea" class="hidden">
+ <b>Stabilità misurazione: <span id="measureCount">0</span>/80</b>
+ <div class="progress"><div id="measureProgress"></div></div>
 </div>
 
-<div class="row">
-<span class="label">Face tracking</span>
-<span id="faceStatus" class="value">
-Non attivo
-</span>
+<div id="result" class="result hidden">
+ <div class="small">PD totale stimata</div>
+ <div class="big"><span id="pdTotal">—</span> mm</div>
+
+ <div class="metrics">
+  <div class="metric">PD OD<b id="pdOD">—</b></div>
+  <div class="metric">PD OS<b id="pdOS">—</b></div>
+  <div class="metric">Stabilità<b id="quality">—</b></div>
+ </div>
+
+ <p class="small">Risultato indicativo da verificare con l'ottico. La stima monoculare usa la linea mediana del volto e non sostituisce una centratura professionale.</p>
+
+ <button id="repeatBtn" class="secondary">RIPETI DALL'INIZIO</button>
 </div>
 
-<div class="row">
-<span class="label">Carta</span>
-<span id="cardStatus" class="value">
-Non rilevata
-</span>
+</section>
 </div>
-
-<div class="row">
-<span class="label">Larghezza carta</span>
-<span id="cardWidth" class="value">
-—
-</span>
-</div>
-
-<div class="row">
-<span class="label">Scala</span>
-<span id="scaleValue" class="value">
-—
-</span>
-</div>
-
-<div class="row">
-<span class="label">Qualità</span>
-<span id="quality" class="value">
-—
-</span>
-</div>
-
-<div class="progress">
-<div id="progressBar"></div>
-</div>
-
-</div>
-
-<div id="instructions" class="instructions">
-
-Per iniziare mostra una carta bancaria davanti alla fotocamera.
-La carta deve essere completamente visibile e abbastanza grande
-nell'immagine.
-
-</div>
-
-<div id="result" class="result" style="display:none">
-
-<div class="resultTitle">
-PD totale stimato
-</div>
-
-<div id="pdTotal" class="resultNumber">
-—
-</div>
-
-<div id="pdMono">
-OD: — &nbsp;&nbsp; OS: —
-</div>
-
-<div id="pdQuality">
-Qualità: —
-</div>
-
-</div>
-
-<div class="small">
-
-La misurazione tramite fotocamera è indicativa e non sostituisce
-una misurazione professionale. Per lenti progressive, alte prescrizioni
-o centrature particolarmente precise è necessario verificare la misura
-con strumenti ottici professionali.
-
-</div>
-
-</div>
-
 
 <script>
-
-(() => {
-
 "use strict";
 
+const CARD_W_MM = 85.60;
+const CARD_STABLE_REQUIRED = 60;
+const MEASURE_REQUIRED = 80;
 
-/* =========================================================
-   CONFIGURAZIONE
-========================================================= */
+const $ = id => document.getElementById(id);
 
-const CARD_WIDTH_MM = 85.60;
-const CARD_HEIGHT_MM = 53.98;
-
-const CALIBRATION_FRAMES = 60;
-const PD_FRAMES = 120;
-
-
-/* =========================================================
-   ELEMENTI
-========================================================= */
-
-const video =
-  document.getElementById("video");
-
-const overlay =
-  document.getElementById("overlay");
-
-const ctx =
-  overlay.getContext("2d");
-
-const workCanvas =
-  document.getElementById("workCanvas");
-
-const workCtx =
-  workCanvas.getContext(
-    "2d",
-    { willReadFrequently:true }
-  );
-
-
-const statusEl =
-  document.getElementById("status");
-
-const opencvStatus =
-  document.getElementById("opencvStatus");
-
-const faceStatus =
-  document.getElementById("faceStatus");
-
-const cardStatus =
-  document.getElementById("cardStatus");
-
-const cardWidthEl =
-  document.getElementById("cardWidth");
-
-const scaleValue =
-  document.getElementById("scaleValue");
-
-const qualityEl =
-  document.getElementById("quality");
-
-const progressBar =
-  document.getElementById("progressBar");
-
-const instructions =
-  document.getElementById("instructions");
-
-const result =
-  document.getElementById("result");
-
-const pdTotalEl =
-  document.getElementById("pdTotal");
-
-const pdMonoEl =
-  document.getElementById("pdMono");
-
-const pdQualityEl =
-  document.getElementById("pdQuality");
-
-const startBtn =
-  document.getElementById("startBtn");
-
-const stopBtn =
-  document.getElementById("stopBtn");
-
-
-/* =========================================================
-   STATO
-========================================================= */
+const video = $("video");
+const canvas = $("overlay");
+const ctx = canvas.getContext("2d");
 
 let stream = null;
-
 let running = false;
-
-let faceLandmarker = null;
-
-let faceReady = false;
-
+let phase = 0;
 let cvReady = false;
+let faceLandmarker = null;
+let cardFrames = 0;
+let cardSamples = [];
+let previousCard = null;
+let pxPerMm = null;
+let faceSamples = [];
+let stableFrames = 0;
+let faceWidthReference = null;
+let finished = false;
 
-let lastVideoTime = -1;
-
-
-/* CALIBRAZIONE */
-
-let calibrationSamples = [];
-
-let pixelsPerMM = null;
-
-let calibrationFaceWidth = null;
-
-let calibrationComplete = false;
-
-
-/* PD */
-
-let pdStarted = false;
-
-let pdSamples = [];
-
-let previousPupils = null;
-
-
-/* =========================================================
-   OPENCV
-========================================================= */
-
-const cvTimer = setInterval(() => {
-
-  if (
-    window.cv &&
-    typeof window.cv.Mat === "function" &&
-    typeof window.cv.findContours === "function"
-  ) {
-
-    cvReady = true;
-
-    opencvStatus.textContent =
-      "Pronto";
-
-    opencvStatus.className =
-      "value success";
-
-    clearInterval(cvTimer);
-
-  }
-
-}, 100);
-
-
-/* =========================================================
-   MEDIAPIPE
-========================================================= */
-
-async function initializeFaceTracking() {
-
-  try {
-
-    const vision =
-      await window.FilesetResolver.forVisionTasks(
-
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm"
-
-      );
-
-
-    faceLandmarker =
-      await window.FaceLandmarker.createFromOptions(
-
-        vision,
-
-        {
-
-          baseOptions: {
-
-            modelAssetPath:
-              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-
-            delegate: "GPU"
-
-          },
-
-          runningMode: "VIDEO",
-
-          numFaces: 1,
-
-          minFaceDetectionConfidence: 0.6,
-
-          minFacePresenceConfidence: 0.6,
-
-          minTrackingConfidence: 0.6
-
-        }
-
-      );
-
-
-    faceReady = true;
-
-    faceStatus.textContent =
-      "Pronto";
-
-    faceStatus.className =
-      "value success";
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    faceStatus.textContent =
-      "Errore";
-
-    faceStatus.className =
-      "value error";
-
-  }
-
+function checkCV() {
+ if (window.cv && typeof cv.Mat === "function") {
+  $("cvState").textContent = "✓";
+  cvReady = true;
+ } else {
+  setTimeout(checkCV, 250);
+ }
 }
+checkCV();
 
+$("startBtn").onclick = async () => {
+ $("intro").classList.add("hidden");
+ $("app").classList.remove("hidden");
+ await resetState();
+ await startCamera();
+};
 
-initializeFaceTracking();
+$("repeatBtn").onclick = async () => {
+ $("result").classList.add("hidden");
+ await resetState();
+ await startCamera();
+};
 
+async function resetState() {
+ running = false;
 
-/* =========================================================
-   AVVIO
-========================================================= */
+ if (stream) {
+  stream.getTracks().forEach(t => t.stop());
+  stream = null;
+ }
 
-startBtn.addEventListener(
-  "click",
-  startCamera
-);
+ phase = 0;
+ cardFrames = 0;
+ cardSamples = [];
+ previousCard = null;
+ pxPerMm = null;
+ faceSamples = [];
+ stableFrames = 0;
+ faceWidthReference = null;
+ finished = false;
+ faceLandmarker = null;
 
-stopBtn.addEventListener(
-  "click",
-  stopCamera
-);
+ $("title").textContent = "Fase 1 — Calibrazione";
+ $("instructions").textContent =
+  "Indossa l'occhiale e tieni la tessera sanitaria davanti al viso. Centra tutta la tessera nel riquadro e non muoverti.";
 
+ $("cardGuide").classList.remove("hidden");
+ $("faceGuide").classList.add("hidden");
+ $("calArea").classList.remove("hidden");
+ $("measureArea").classList.add("hidden");
+
+ $("cardCount").textContent = "0";
+ $("cardProgress").style.width = "0%";
+ $("measureCount").textContent = "0";
+ $("measureProgress").style.width = "0%";
+ $("cardState").textContent = "—";
+ $("faceState").textContent = "—";
+
+ $("status").className = "status";
+ $("status").textContent = "Avvio fotocamera…";
+}
 
 async function startCamera() {
-
-  try {
-
-    if (!cvReady) {
-
-      setStatus(
-        "OpenCV non è ancora pronto. Attendi qualche secondo.",
-        "warning"
-      );
-
-      return;
-
-    }
-
-
-    if (!faceReady) {
-
-      setStatus(
-        "Face tracking non ancora pronto.",
-        "warning"
-      );
-
-      return;
-
-    }
-
-
-    stream =
-      await navigator.mediaDevices.getUserMedia({
-
-        video: {
-
-          facingMode: "user",
-
-          width: {
-            ideal: 1280
-          },
-
-          height: {
-            ideal: 720
-          }
-
-        },
-
-        audio:false
-
-      });
-
-
-    video.srcObject =
-      stream;
-
-
-    await video.play();
-
-
-    overlay.width =
-      video.videoWidth;
-
-    overlay.height =
-      video.videoHeight;
-
-
-    workCanvas.width =
-      video.videoWidth;
-
-    workCanvas.height =
-      video.videoHeight;
-
-
-    running = true;
-
-    calibrationSamples = [];
-
-    pixelsPerMM = null;
-
-    calibrationFaceWidth = null;
-
-    calibrationComplete = false;
-
-    pdStarted = false;
-
-    pdSamples = [];
-
-    previousPupils = null;
-
-    result.style.display =
-      "none";
-
-    progressBar.style.width =
-      "0%";
-
-
-    setStatus(
-      "Mostra una carta bancaria intera.",
-      "warning"
-    );
-
-
-    instructions.textContent =
-      "Tieni una carta bancaria completamente visibile davanti alla fotocamera. " +
-      "Il viso da solo NON avvia la calibrazione.";
-
-
-    requestAnimationFrame(loop);
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    setStatus(
-      "Errore fotocamera: " + error.message,
-      "error"
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   STOP
-========================================================= */
-
-function stopCamera() {
-
-  running = false;
-
-
-  if (stream) {
-
-    stream
-      .getTracks()
-      .forEach(track =>
-        track.stop()
-      );
-
-    stream = null;
-
-  }
-
-
-  video.srcObject = null;
-
-  ctx.clearRect(
-    0,
-    0,
-    overlay.width,
-    overlay.height
-  );
-
-
-  setStatus(
-    "Fotocamera fermata.",
-    ""
-  );
-
-}
-
-
-/* =========================================================
-   LOOP PRINCIPALE
-========================================================= */
-
-async function loop(timestamp) {
-
-  if (!running)
-    return;
-
-
-  if (
-    video.readyState >= 2 &&
-    video.currentTime !== lastVideoTime
-  ) {
-
-    lastVideoTime =
-      video.currentTime;
-
-
-    workCtx.drawImage(
-      video,
-      0,
-      0,
-      workCanvas.width,
-      workCanvas.height
-    );
-
-
-    /*
-      Pulisce il canvas overlay.
-    */
-
-    ctx.clearRect(
-      0,
-      0,
-      overlay.width,
-      overlay.height
-    );
-
-
-    /*
-      PRIMA FASE:
-      CARTA
-    */
-
-    if (!calibrationComplete) {
-
-      processCardCalibration();
-
-    }
-
-
-    /*
-      FACE TRACKING
-    */
-
-    if (faceLandmarker) {
-
-      try {
-
-        const faceResult =
-          faceLandmarker.detectForVideo(
-            video,
-            performance.now()
-          );
-
-
-        drawFace(faceResult);
-
-
-        if (
-          calibrationComplete &&
-          faceResult.faceLandmarks &&
-          faceResult.faceLandmarks.length
-        ) {
-
-          processPD(
-            faceResult.faceLandmarks[0]
-          );
-
-        }
-
-
-      } catch (error) {
-
-        console.error(
-          "Face tracking:",
-          error
-        );
-
-      }
-
-    }
-
-  }
-
-
-  requestAnimationFrame(loop);
-
-}
-
-
-/* =========================================================
-   CALIBRAZIONE CARTA
-========================================================= */
-
-function processCardCalibration() {
-
-  const card =
-    detectCard();
-
-
-  /*
-    SE NON C'È CARTA:
-    NON CALIBRARE.
-  */
-
-  if (!card) {
-
-    cardStatus.textContent =
-      "NON RILEVATA";
-
-    cardStatus.className =
-      "value warning";
-
-    cardWidthEl.textContent =
-      "—";
-
-    scaleValue.textContent =
-      "—";
-
-    qualityEl.textContent =
-      "In attesa della carta";
-
-    qualityEl.className =
-      "value warning";
-
-    progressBar.style.width =
-      "0%";
-
-
-    setStatus(
-      "Carta non rilevata. Mostra una carta bancaria intera.",
-      "warning"
-    );
-
-
-    return;
-
-  }
-
-
-  /*
-    CARTA RILEVATA
-  */
-
-  drawCard(card);
-
-
-  const widthPx =
-    card.widthPx;
-
-
-  const currentScale =
-    widthPx / CARD_WIDTH_MM;
-
-
-  cardWidthEl.textContent =
-    widthPx.toFixed(1) +
-    " px";
-
-
-  scaleValue.textContent =
-    currentScale.toFixed(3) +
-    " px/mm";
-
-
-  cardStatus.textContent =
-    "RILEVATA";
-
-  cardStatus.className =
-    "value success";
-
-
-  /*
-    RACCOLTA CAMPIONI
-  */
-
-  calibrationSamples.push(
-    currentScale
-  );
-
-
-  /*
-    Limitiamo la memoria.
-  */
-
-  if (
-    calibrationSamples.length >
-    CALIBRATION_FRAMES
-  ) {
-
-    calibrationSamples.shift();
-
-  }
-
-
-  const progress =
-    Math.round(
-      calibrationSamples.length /
-      CALIBRATION_FRAMES *
-      100
-    );
-
-
-  progressBar.style.width =
-    progress + "%";
-
-
-  qualityEl.textContent =
-    "Calibrazione " +
-    progress +
-    "%";
-
-
-  /*
-    Non accettiamo subito la carta.
-    Servono almeno 60 campioni.
-  */
-
-  if (
-    calibrationSamples.length <
-    CALIBRATION_FRAMES
-  ) {
-
-    setStatus(
-      "Carta rilevata. Mantienila ferma... " +
-      progress +
-      "%",
-      "warning"
-    );
-
-    return;
-
-  }
-
-
-  /*
-    CONTROLLO STABILITÀ
-  */
-
-  const variation =
-    coefficientVariation(
-      calibrationSamples
-    );
-
-
-  if (variation > 0.035) {
-
-    qualityEl.textContent =
-      "Carta instabile";
-
-    qualityEl.className =
-      "value warning";
-
-
-    setStatus(
-      "La carta si sta muovendo. Tienila ferma.",
-      "warning"
-    );
-
-
-    /*
-      Manteniamo solo gli ultimi
-      campioni per riprovare.
-    */
-
-    calibrationSamples =
-      calibrationSamples.slice(-20);
-
-
-    progressBar.style.width =
-      Math.round(
-        calibrationSamples.length /
-        CALIBRATION_FRAMES *
-        100
-      ) + "%";
-
-
-    return;
-
-  }
-
-
-  /*
-    CALIBRAZIONE ACCETTATA
-  */
-
-  pixelsPerMM =
-    median(calibrationSamples);
-
-
-  calibrationComplete =
-    true;
-
-
-  cardStatus.textContent =
-    "CALIBRATA";
-
-  cardStatus.className =
-    "value success";
-
-
-  scaleValue.textContent =
-    pixelsPerMM.toFixed(3) +
-    " px/mm";
-
-
-  qualityEl.textContent =
-    "Calibrazione stabile";
-
-  qualityEl.className =
-    "value success";
-
-
-  progressBar.style.width =
-    "100%";
-
-
-  setStatus(
-    "Carta calibrata. Ora rimuovila.",
-    "success"
-  );
-
-
-  instructions.textContent =
-    "Rimuovi la carta mantenendo il viso più o meno alla stessa distanza. " +
-    "Guarda dritto nella fotocamera e non inclinare la testa.";
-
-}
-
-
-/* =========================================================
-   RILEVAMENTO CARTA CON OPENCV
-========================================================= */
-
-function detectCard() {
-
-  if (!cvReady)
-    return null;
-
-
-  let src = null;
-  let gray = null;
-  let blurred = null;
-  let edges = null;
-  let contours = null;
-  let hierarchy = null;
-
-
-  try {
-
-    src =
-      cv.imread(workCanvas);
-
-
-    gray =
-      new cv.Mat();
-
-
-    blurred =
-      new cv.Mat();
-
-
-    edges =
-      new cv.Mat();
-
-
-    contours =
-      new cv.MatVector();
-
-
-    hierarchy =
-      new cv.Mat();
-
-
-    /*
-      Grayscale
-    */
-
-    cv.cvtColor(
-      src,
-      gray,
-      cv.COLOR_RGBA2GRAY
-    );
-
-
-    /*
-      Riduzione rumore
-    */
-
-    cv.GaussianBlur(
-      gray,
-      blurred,
-      new cv.Size(5,5),
-      0,
-      0,
-      cv.BORDER_DEFAULT
-    );
-
-
-    /*
-      Bordi
-    */
-
-    cv.Canny(
-      blurred,
-      edges,
-      60,
-      160
-    );
-
-
-    /*
-      Contorni
-    */
-
-    cv.findContours(
-      edges,
-      contours,
-      hierarchy,
-      cv.RETR_EXTERNAL,
-      cv.CHAIN_APPROX_SIMPLE
-    );
-
-
-    let best =
-      null;
-
-
-    const imageArea =
-      workCanvas.width *
-      workCanvas.height;
-
-
-    for (
-      let i = 0;
-      i < contours.size();
-      i++
-    ) {
-
-      const contour =
-        contours.get(i);
-
-
-      const area =
-        Math.abs(
-          cv.contourArea(
-            contour
-          )
-        );
-
-
-      /*
-        Evita oggetti troppo piccoli.
-      */
-
-      if (
-        area <
-        imageArea * 0.01
-      ) {
-
-        contour.delete();
-
-        continue;
-
-      }
-
-
-      const perimeter =
-        cv.arcLength(
-          contour,
-          true
-        );
-
-
-      const approx =
-        new cv.Mat();
-
-
-      cv.approxPolyDP(
-        contour,
-        approx,
-        0.025 * perimeter,
-        true
-      );
-
-
-      /*
-        Una carta deve avere 4 vertici.
-      */
-
-      if (
-        approx.rows === 4 &&
-        cv.isContourConvex(approx)
-      ) {
-
-        const points = [];
-
-
-        for (
-          let r = 0;
-          r < 4;
-          r++
-        ) {
-
-          const point =
-            approx.intPtr(
-              r,
-              0
-            );
-
-
-          points.push({
-
-            x: point[0],
-            y: point[1]
-
-          });
-
-        }
-
-
-        const corners =
-          orderCorners(points);
-
-
-        const side1 =
-          distance(
-            corners[0],
-            corners[1]
-          );
-
-
-        const side2 =
-          distance(
-            corners[1],
-            corners[2]
-          );
-
-
-        const side3 =
-          distance(
-            corners[2],
-            corners[3]
-          );
-
-
-        const side4 =
-          distance(
-            corners[3],
-            corners[0]
-          );
-
-
-        const longSide =
-          (
-            side1 +
-            side3
-          ) / 2;
-
-
-        const shortSide =
-          (
-            side2 +
-            side4
-          ) / 2;
-
-
-        if (
-          shortSide <= 0
-        ) {
-
-          approx.delete();
-
-          contour.delete();
-
-          continue;
-
-        }
-
-
-        const ratio =
-          longSide /
-          shortSide;
-
-
-        const targetRatio =
-          CARD_WIDTH_MM /
-          CARD_HEIGHT_MM;
-
-
-        const ratioError =
-          Math.abs(
-            ratio -
-            targetRatio
-          );
-
-
-        /*
-          Tolleranza per prospettiva.
-        */
-
-        if (
-          ratioError <
-          0.25
-        ) {
-
-          /*
-            Evitiamo rettangoli
-            quasi orizzontali minuscoli.
-          */
-
-          if (
-            longSide < 150 ||
-            shortSide < 80
-          ) {
-
-            approx.delete();
-
-            contour.delete();
-
-            continue;
-
-          }
-
-
-          /*
-            Più area + proporzioni corrette
-            = candidato migliore.
-          */
-
-          const score =
-            area /
-            (1 + ratioError * 8);
-
-
-          if (
-            !best ||
-            score > best.score
-          ) {
-
-            best = {
-
-              corners: corners,
-
-              widthPx: longSide,
-
-              heightPx: shortSide,
-
-              ratio: ratio,
-
-              area: area,
-
-              score: score
-
-            };
-
-          }
-
-        }
-
-      }
-
-
-      approx.delete();
-
-      contour.delete();
-
-    }
-
-
-    return best;
-
-
-  } catch (error) {
-
-    console.error(
-      "Errore OpenCV:",
-      error
-    );
-
-
-    return null;
-
-
-  } finally {
-
-    if (src)
-      src.delete();
-
-    if (gray)
-      gray.delete();
-
-    if (blurred)
-      blurred.delete();
-
-    if (edges)
-      edges.delete();
-
-    if (contours)
-      contours.delete();
-
-    if (hierarchy)
-      hierarchy.delete();
-
-  }
-
-}
-
-
-/* =========================================================
-   DISEGNA CARTA
-========================================================= */
-
-function drawCard(card) {
-
-  const p =
-    card.corners;
-
-
-  ctx.save();
-
-
-  ctx.strokeStyle =
-    "#00ff66";
-
-
-  ctx.lineWidth =
-    5;
-
-
-  ctx.beginPath();
-
-
-  ctx.moveTo(
-    p[0].x,
-    p[0].y
-  );
-
-
-  ctx.lineTo(
-    p[1].x,
-    p[1].y
-  );
-
-
-  ctx.lineTo(
-    p[2].x,
-    p[2].y
-  );
-
-
-  ctx.lineTo(
-    p[3].x,
-    p[3].y
-  );
-
-
-  ctx.closePath();
-
-
-  ctx.stroke();
-
-
-  /*
-    Quattro punti verdi
-    sugli angoli.
-  */
-
-  ctx.fillStyle =
-    "#00ff66";
-
-
-  for (
-    const point of p
-  ) {
-
-    ctx.beginPath();
-
-    ctx.arc(
-      point.x,
-      point.y,
-      7,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-  }
-
-
-  /*
-    Testo
-  */
-
-  ctx.font =
-    "bold 22px Arial";
-
-  ctx.fillStyle =
-    "#00ff66";
-
-  ctx.fillText(
-    "CARTA RILEVATA",
-    p[0].x,
-    p[0].y - 15
-  );
-
-
-  ctx.restore();
-
-}
-
-
-/* =========================================================
-   FACE LANDMARKS
-========================================================= */
-
-function drawFace(faceResult) {
-
-  if (
-    !faceResult ||
-    !faceResult.faceLandmarks ||
-    !faceResult.faceLandmarks.length
-  ) {
-
-    faceStatus.textContent =
-      "Nessun volto";
-
-    faceStatus.className =
-      "value warning";
-
-    return;
-
-  }
-
-
-  faceStatus.textContent =
-    "Rilevato";
-
-  faceStatus.className =
-    "value success";
-
-
-  const lm =
-    faceResult.faceLandmarks[0];
-
-
-  /*
-    Punti gialli del viso.
-  */
-
-  const facePoints = [
-
-    1,
-    4,
-    6,
-    10,
-
-    33,
-    133,
-
-    263,
-    362,
-
-    234,
-    454,
-
-    61,
-    291,
-
-    152
-
-  ];
-
-
-  /*
-    Punti delle iridi.
-  */
-
-  const irisPoints = [
-
-    468,
-    469,
-    470,
-    471,
-    472,
-
-    473,
-    474,
-    475,
-    476,
-    477
-
-  ];
-
-
-  ctx.save();
-
-
-  /*
-    PALLINI GIALLI DEL VISO
-  */
-
-  ctx.fillStyle =
-    "#ffd400";
-
-
-  for (
-    const index of facePoints
-  ) {
-
-    if (!lm[index])
-      continue;
-
-
-    const p =
-      landmarkToCanvas(
-        lm[index]
-      );
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-      p.x,
-      p.y,
-      5,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-  }
-
-
-  /*
-    PALLINI GIALLI ATTORNO ALLE IRIDI
-  */
-
-  for (
-    const index of irisPoints
-  ) {
-
-    if (!lm[index])
-      continue;
-
-
-    const p =
-      landmarkToCanvas(
-        lm[index]
-      );
-
-
-    ctx.fillStyle =
-      "#ffd400";
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-      p.x,
-      p.y,
-      4,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-  }
-
-
-  /*
-    CENTRO IRIDI ROSSO
-  */
-
-  const pupilA =
-    irisCenter(
-      lm,
-      [
-        468,
-        469,
-        470,
-        471,
-        472
-      ]
-    );
-
-
-  const pupilB =
-    irisCenter(
-      lm,
-      [
-        473,
-        474,
-        475,
-        476,
-        477
-      ]
-    );
-
-
-  if (pupilA)
-    drawPupil(pupilA);
-
-
-  if (pupilB)
-    drawPupil(pupilB);
-
-
-  ctx.restore();
-
-}
-
-
-/* =========================================================
-   PUPILLA
-========================================================= */
-
-function drawPupil(point) {
-
-  const p =
-    landmarkToCanvas(
-      point
-    );
-
-
-  ctx.save();
-
-
-  ctx.fillStyle =
-    "#ff3030";
-
-
-  ctx.strokeStyle =
-    "white";
-
-
-  ctx.lineWidth =
-    2;
-
-
-  ctx.beginPath();
-
-
-  ctx.arc(
-    p.x,
-    p.y,
-    8,
-    0,
-    Math.PI * 2
-  );
-
-
-  ctx.fill();
-
-  ctx.stroke();
-
-
-  ctx.restore();
-
-}
-
-
-/* =========================================================
-   MISURAZIONE PD
-========================================================= */
-
-function processPD(lm) {
-
-  if (!pixelsPerMM)
-    return;
-
-
-  const pupilA =
-    irisCenter(
-      lm,
-      [
-        468,
-        469,
-        470,
-        471,
-        472
-      ]
-    );
-
-
-  const pupilB =
-    irisCenter(
-      lm,
-      [
-        473,
-        474,
-        475,
-        476,
-        477
-      ]
-    );
-
-
-  if (
-    !pupilA ||
-    !pupilB
-  )
-    return;
-
-
-  const a =
-    landmarkToCanvas(
-      pupilA
-    );
-
-
-  const b =
-    landmarkToCanvas(
-      pupilB
-    );
-
-
-  const pupilDistancePx =
-    distance(
-      a,
-      b
-    );
-
-
-  if (
-    pupilDistancePx < 20
-  )
-    return;
-
-
-  /*
-    Larghezza del viso.
-  */
-
-  const faceWidth =
-    getFaceWidthPx(lm);
-
-
-  if (!faceWidth)
-    return;
-
-
-  /*
-    Se non abbiamo ancora
-    la larghezza del viso
-    registrata durante la
-    calibrazione, la iniziamo.
-  */
-
-  if (!calibrationFaceWidth) {
-
-    calibrationFaceWidth =
-      faceWidth;
-
-  }
-
-
-  /*
-    Adattamento alla distanza.
-  */
-
-  const effectiveScale =
-    pixelsPerMM *
-    (
-      faceWidth /
-      calibrationFaceWidth
-    );
-
-
-  const pd =
-    pupilDistancePx /
-    effectiveScale;
-
-
-  /*
-    Range plausibile.
-  */
-
-  if (
-    !isFinite(pd) ||
-    pd < 35 ||
-    pd > 90
-  )
-    return;
-
-
-  /*
-    Controllo movimento.
-  */
-
-  if (previousPupils) {
-
-    const movement =
-      distance(
-        a,
-        previousPupils.a
-      ) +
-      distance(
-        b,
-        previousPupils.b
-      );
-
-
-    if (
-      movement > 45
-    ) {
-
-      previousPupils = {
-        a:a,
-        b:b
-      };
-
-      return;
-
-    }
-
-  }
-
-
-  previousPupils = {
-    a:a,
-    b:b
-  };
-
-
-  /*
-    Avvio misurazione.
-  */
-
-  if (!pdStarted) {
-
-    pdStarted = true;
-
-    pdSamples = [];
-
-
-    setStatus(
-      "Viso rilevato. Mantienilo fermo...",
-      "success"
-    );
-
-
-    instructions.textContent =
-      "Guarda direttamente la fotocamera e non inclinare la testa. " +
-      "Stiamo raccogliendo molte misure per stabilizzare il risultato.";
-
-  }
-
-
-  pdSamples.push({
-
-    total:pd,
-
-    a:a,
-
-    b:b
-
+ try {
+  stream = await navigator.mediaDevices.getUserMedia({
+   video: {
+    facingMode: "user",
+    width: { ideal: 1280 },
+    height: { ideal: 720 }
+   },
+   audio: false
   });
 
+  video.srcObject = stream;
+  await video.play();
 
-  if (
-    pdSamples.length >
-    PD_FRAMES
-  ) {
+  try {
+   const vision = await window.FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm"
+   );
 
-    pdSamples.shift();
-
-  }
-
-
-  const progress =
-    Math.round(
-      pdSamples.length /
-      PD_FRAMES *
-      100
-    );
-
-
-  progressBar.style.width =
-    progress + "%";
-
-
-  qualityEl.textContent =
-    "Misurazione " +
-    progress +
-    "%";
-
-
-  /*
-    Quando abbiamo abbastanza
-    campioni analizziamo
-    la stabilità.
-  */
-
-  if (
-    pdSamples.length >= 70
-  ) {
-
-    const stable =
-      getStableSamples();
-
-
-    if (
-      stable.length >= 50
-    ) {
-
-      const values =
-        stable.map(
-          sample =>
-            sample.total
-        );
-
-
-      const total =
-        median(values);
-
-
-      const variation =
-        coefficientVariation(
-          values
-        );
-
-
-      let quality =
-        "Buona";
-
-
-      if (
-        variation > 0.035
-      )
-        quality = "Media";
-
-
-      if (
-        variation > 0.06
-      )
-        quality = "Bassa";
-
-
-      pdTotalEl.textContent =
-        total.toFixed(1) +
-        " mm";
-
-
-      /*
-        Calcolo monoculare.
-      */
-
-      const mono =
-        calculateMonocularPD(
-          lm,
-          effectiveScale
-        );
-
-
-      if (mono) {
-
-        pdMonoEl.textContent =
-          "OD: " +
-          mono.od.toFixed(1) +
-          " mm    OS: " +
-          mono.os.toFixed(1) +
-          " mm";
-
-      }
-
-
-      pdQualityEl.textContent =
-        "Qualità: " +
-        quality +
-        " · variazione " +
-        (
-          variation * 100
-        ).toFixed(1) +
-        "%";
-
-
-      result.style.display =
-        "block";
-
-
-      qualityEl.textContent =
-        "Completata";
-
-
-      qualityEl.className =
-        quality === "Buona"
-          ? "value success"
-          : "value warning";
-
-
-      setStatus(
-        "Misurazione completata.",
-        "success"
-      );
-
+   faceLandmarker = await window.FaceLandmarker.createFromOptions(
+    vision,
+    {
+     baseOptions: {
+      modelAssetPath:
+       "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+     },
+     runningMode: "VIDEO",
+     numFaces: 1,
+     minFaceDetectionConfidence: 0.55,
+     minFacePresenceConfidence: 0.55,
+     minTrackingConfidence: 0.55
     }
+   );
 
+   $("faceState").textContent = "Pronto";
+  } catch (e) {
+   console.error(e);
+   $("faceState").textContent = "Errore";
+   $("status").className = "status bad";
+   $("status").textContent =
+    "Errore nel caricamento del rilevatore facciale. Ricarica la pagina e riprova.";
   }
 
+  running = true;
+  requestAnimationFrame(loop);
+
+ } catch (e) {
+  console.error(e);
+  $("status").className = "status bad";
+  $("status").textContent =
+   "Fotocamera non disponibile: controlla i permessi del browser e riapri la pagina.";
+ }
 }
 
+function loop() {
+ if (!running) return;
 
-/* =========================================================
-   PD MONOCULARE
-========================================================= */
+ if (video.readyState >= 2) {
+  const w = video.videoWidth;
+  const h = video.videoHeight;
 
-function calculateMonocularPD(
-  lm,
-  scale
-) {
+  if (canvas.width !== w || canvas.height !== h) {
+   canvas.width = w;
+   canvas.height = h;
+  }
 
-  const pupilA =
-    irisCenter(
-      lm,
-      [
-        468,
-        469,
-        470,
-        471,
-        472
-      ]
-    );
+  ctx.clearRect(0, 0, w, h);
 
+  if (phase === 0) {
+   calibrationFrame();
+  } else {
+   faceFrame();
+  }
+ }
 
-  const pupilB =
-    irisCenter(
-      lm,
-      [
-        473,
-        474,
-        475,
-        476,
-        477
-      ]
-    );
-
-
-  if (
-    !pupilA ||
-    !pupilB
-  )
-    return null;
-
-
-  const a =
-    landmarkToCanvas(
-      pupilA
-    );
-
-
-  const b =
-    landmarkToCanvas(
-      pupilB
-    );
-
-
-  /*
-    Angoli esterni degli occhi.
-  */
-
-  const eyeLeft =
-    landmarkToCanvas(
-      lm[33]
-    );
-
-
-  const eyeRight =
-    landmarkToCanvas(
-      lm[263]
-    );
-
-
-  /*
-    Punto centrale del naso.
-  */
-
-  const nose =
-    landmarkToCanvas(
-      lm[1]
-    );
-
-
-  const vx =
-    eyeRight.x -
-    eyeLeft.x;
-
-
-  const vy =
-    eyeRight.y -
-    eyeLeft.y;
-
-
-  const length =
-    Math.hypot(
-      vx,
-      vy
-    );
-
-
-  if (!length)
-    return null;
-
-
-  const ux =
-    vx / length;
-
-
-  const uy =
-    vy / length;
-
-
-  /*
-    Proiezione del naso
-    sulla linea degli occhi.
-  */
-
-  const nx =
-    nose.x -
-    eyeLeft.x;
-
-
-  const ny =
-    nose.y -
-    eyeLeft.y;
-
-
-  const projection =
-    nx * ux +
-    ny * uy;
-
-
-  const midline = {
-
-    x:
-      eyeLeft.x +
-      ux * projection,
-
-    y:
-      eyeLeft.y +
-      uy * projection
-
-  };
-
-
-  const distanceA =
-    Math.abs(
-
-      (
-        a.x -
-        midline.x
-      ) * ux +
-
-      (
-        a.y -
-        midline.y
-      ) * uy
-
-    );
-
-
-  const distanceB =
-    Math.abs(
-
-      (
-        b.x -
-        midline.x
-      ) * ux +
-
-      (
-        b.y -
-        midline.y
-      ) * uy
-
-    );
-
-
-  const od =
-    distanceA /
-    scale;
-
-
-  const os =
-    distanceB /
-    scale;
-
-
-  if (
-    od < 15 ||
-    od > 50 ||
-    os < 15 ||
-    os > 50
-  )
-    return null;
-
-
-  return {
-    od:od,
-    os:os
-  };
-
+ requestAnimationFrame(loop);
 }
 
+function detectCard() {
+ const W = video.videoWidth;
+ const H = video.videoHeight;
 
-/* =========================================================
-   CAMPIONI STABILI
-========================================================= */
+ if (!W || !H || !cvReady) return null;
 
-function getStableSamples() {
+ const factor = Math.min(1, 960 / W);
+ const rw = Math.round(W * factor);
+ const rh = Math.round(H * factor);
+ const work = document.createElement("canvas");
 
-  if (
-    !pdSamples.length
-  )
-    return [];
+ work.width = rw;
+ work.height = rh;
 
+ work.getContext("2d").drawImage(video, 0, 0, rw, rh);
 
-  const values =
-    pdSamples.map(
-      sample =>
-        sample.total
-    );
+ let src, gray, blur, edges, contours, hierarchy, kernel;
 
+ try {
+  src = cv.imread(work);
+  gray = new cv.Mat();
+  blur = new cv.Mat();
+  edges = new cv.Mat();
+  contours = new cv.MatVector();
+  hierarchy = new cv.Mat();
 
-  const center =
-    median(values);
+  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+  cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0);
+  cv.Canny(blur, edges, 55, 145);
 
-
-  return pdSamples.filter(
-    sample =>
-      Math.abs(
-        sample.total -
-        center
-      ) < 2.5
+  kernel = cv.getStructuringElement(
+   cv.MORPH_RECT,
+   new cv.Size(3, 3)
   );
 
-}
-
-
-/* =========================================================
-   LARGHEZZA VISO
-========================================================= */
-
-function getFaceWidthPx(lm) {
-
-  if (
-    !lm[234] ||
-    !lm[454]
-  )
-    return null;
-
-
-  const a =
-    landmarkToCanvas(
-      lm[234]
-    );
-
-
-  const b =
-    landmarkToCanvas(
-      lm[454]
-    );
-
-
-  const width =
-    distance(
-      a,
-      b
-    );
-
-
-  if (
-    width < 100 ||
-    width > 1000
-  )
-    return null;
-
-
-  /*
-    Durante la fase carta,
-    se non abbiamo ancora
-    una misura del viso,
-    la registriamo.
-  */
-
-  if (
-    !calibrationComplete &&
-    faceReady
-  ) {
-
-    if (
-      !calibrationFaceWidth
-    ) {
-
-      calibrationFaceWidth =
-        width;
-
-    }
-
-  }
-
-
-  return width;
-
-}
-
-
-/* =========================================================
-   CENTRO IRIDE
-========================================================= */
-
-function irisCenter(
-  lm,
-  indices
-) {
-
-  const points =
-    indices
-      .map(
-        index =>
-          lm[index]
-      )
-      .filter(Boolean);
-
-
-  if (
-    !points.length
-  )
-    return null;
-
-
-  let x = 0;
-  let y = 0;
-  let z = 0;
-
-
-  for (
-    const p of points
-  ) {
-
-    x += p.x;
-
-    y += p.y;
-
-    z +=
-      p.z || 0;
-
-  }
-
-
-  return {
-
-    x:
-      x / points.length,
-
-    y:
-      y / points.length,
-
-    z:
-      z / points.length
-
-  };
-
-}
-
-
-/* =========================================================
-   COORDINATE
-========================================================= */
-
-function landmarkToCanvas(p) {
-
-  return {
-
-    x:
-      p.x *
-      overlay.width,
-
-    y:
-      p.y *
-      overlay.height
-
-  };
-
-}
-
-
-/* =========================================================
-   ORDINA ANGOLI CARTA
-========================================================= */
-
-function orderCorners(points) {
-
-  const sum =
-    p =>
-      p.x +
-      p.y;
-
-
-  const difference =
-    p =>
-      p.x -
-      p.y;
-
-
-  const topLeft =
-    points.reduce(
-      (a,b) =>
-        sum(a) <
-        sum(b)
-          ? a
-          : b
-    );
-
-
-  const bottomRight =
-    points.reduce(
-      (a,b) =>
-        sum(a) >
-        sum(b)
-          ? a
-          : b
-    );
-
-
-  const topRight =
-    points.reduce(
-      (a,b) =>
-        difference(a) >
-        difference(b)
-          ? a
-          : b
-    );
-
-
-  const bottomLeft =
-    points.reduce(
-      (a,b) =>
-        difference(a) <
-        difference(b)
-          ? a
-          : b
-    );
-
-
-  return [
-
-    topLeft,
-    topRight,
-    bottomRight,
-    bottomLeft
-
-  ];
-
-}
-
-
-/* =========================================================
-   DISTANZA
-========================================================= */
-
-function distance(a,b) {
-
-  return Math.hypot(
-
-    a.x -
-    b.x,
-
-    a.y -
-    b.y
-
+  cv.dilate(edges, edges, kernel);
+
+  cv.findContours(
+   edges,
+   contours,
+   hierarchy,
+   cv.RETR_LIST,
+   cv.CHAIN_APPROX_SIMPLE
   );
 
-}
+  const candidates = [];
+  const imageArea = rw * rh;
 
+  for (let i = 0; i < contours.size(); i++) {
+   const cnt = contours.get(i);
+   const area = Math.abs(cv.contourArea(cnt));
 
-/* =========================================================
-   MEDIANA
-========================================================= */
+   if (area < imageArea * 0.012 || area > imageArea * 0.78) {
+    cnt.delete();
+    continue;
+   }
 
-function median(values) {
+   const peri = cv.arcLength(cnt, true);
+   const approx = new cv.Mat();
 
-  if (
-    !values.length
-  )
-    return 0;
+   cv.approxPolyDP(cnt, approx, 0.02 * peri, true);
 
+   if (approx.rows !== 4 || !cv.isContourConvex(approx)) {
+    approx.delete();
+    cnt.delete();
+    continue;
+   }
 
-  const sorted =
-    [...values]
-      .sort(
-        (a,b) =>
-          a -
-          b
-      );
+   const pts = [];
 
+   for (let j = 0; j < 4; j++) {
+    pts.push({
+     x: approx.data32S[j * 2],
+     y: approx.data32S[j * 2 + 1]
+    });
+   }
 
-  const middle =
-    Math.floor(
-      sorted.length /
-      2
-    );
+   approx.delete();
 
+   const ordered = orderPoints(pts);
 
-  if (
-    sorted.length %
-    2
-  ) {
+   const sides = [
+    dist(ordered[0], ordered[1]),
+    dist(ordered[1], ordered[2]),
+    dist(ordered[2], ordered[3]),
+    dist(ordered[3], ordered[0])
+   ];
 
-    return sorted[middle];
+   const long = (
+    Math.max(sides[0], sides[2]) +
+    Math.max(sides[1], sides[3])
+   ) / 2;
 
+   const short = (
+    Math.min(sides[0], sides[2]) +
+    Math.min(sides[1], sides[3])
+   ) / 2;
+
+   const ratio = long / short;
+   const target = CARD_W_MM / 53.98;
+   const ratioError = Math.abs(ratio - target) / target;
+   const rectangularity = area / (long * short);
+
+   if (
+    short < 55 ||
+    ratioError > 0.14 ||
+    rectangularity < 0.55
+   ) {
+    cnt.delete();
+    continue;
+   }
+
+   candidates.push({
+    points: ordered.map(p => ({
+     x: p.x / factor,
+     y: p.y / factor
+    })),
+    longSide: long / factor,
+    shortSide: short / factor,
+    score: area * (1 - ratioError * 4) * rectangularity
+   });
+
+   cnt.delete();
   }
 
+  if (!candidates.length) return null;
 
-  return (
+  candidates.sort((a, b) => b.score - a.score);
 
-    sorted[middle - 1] +
-    sorted[middle]
+  const best = candidates[0];
 
-  ) / 2;
+  const cx = best.points.reduce((s, p) => s + p.x, 0) / 4;
+  const cy = best.points.reduce((s, p) => s + p.y, 0) / 4;
 
-}
-
-
-/* =========================================================
-   VARIAZIONE
-========================================================= */
-
-function coefficientVariation(
-  values
-) {
-
-  if (
-    !values.length
-  )
-    return Infinity;
-
-
-  const mean =
-    values.reduce(
-      (a,b) =>
-        a + b,
-      0
-    ) /
-    values.length;
-
-
-  if (!mean)
-    return Infinity;
-
-
-  const variance =
-    values.reduce(
-      (sum,value) =>
-        sum +
-        Math.pow(
-          value -
-          mean,
-          2
-        ),
-      0
-    ) /
-    values.length;
-
-
-  return (
-    Math.sqrt(
-      variance
-    ) /
-    mean
-  );
-
-}
-
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-function setStatus(
-  message,
-  type
-) {
-
-  statusEl.textContent =
-    message;
-
-
-  statusEl.className =
-    "status";
-
-
-  if (
-    type === "warning"
-  ) {
-
-    statusEl.classList.add(
-      "warning"
-    );
-
+  if (cx < W * 0.06 || cx > W * 0.94 ||
+      cy < H * 0.06 || cy > H * 0.94) {
+   return null;
   }
 
+  return best;
 
-  if (
-    type === "success"
-  ) {
+ } catch (e) {
+  console.error("OpenCV:", e);
+  return null;
 
-    statusEl.classList.add(
-      "success"
-    );
-
-  }
-
-
-  if (
-    type === "error"
-  ) {
-
-    statusEl.classList.add(
-      "error"
-    );
-
-  }
-
+ } finally {
+  [src, gray, blur, edges, contours, hierarchy, kernel]
+   .filter(Boolean)
+   .forEach(o => o.delete());
+ }
 }
 
-})();
+function calibrationFrame() {
+ if (!cvReady) {
+  $("status").textContent =
+   "Caricamento del rilevamento tessera…";
+  return;
+ }
 
+ const card = detectCard();
+
+ if (!card) {
+  cardFrames = 0;
+  cardSamples = [];
+  previousCard = null;
+
+  $("cardCount").textContent = "0";
+  $("cardProgress").style.width = "0%";
+  $("cardState").textContent = "Non rilevata";
+  $("status").className = "status bad";
+  $("status").textContent =
+   "Tessera non rilevata. Mostrala intera nel riquadro; senza tessera la calibrazione non avanza.";
+
+  return;
+ }
+
+ drawCard(card);
+
+ $("cardState").textContent = "Rilevata";
+
+ const stable = previousCard && cardStable(previousCard, card);
+
+ if (stable) {
+  cardFrames++;
+  cardSamples.push(card.longSide / CARD_W_MM);
+
+  if (cardSamples.length > 60) {
+   cardSamples.shift();
+  }
+
+  $("status").className = "status";
+  $("status").textContent =
+   "Tessera riconosciuta. Resta fermo: calibrazione in corso.";
+
+ } else {
+  cardFrames = 0;
+  cardSamples = [];
+
+  $("status").className = "status bad";
+  $("status").textContent =
+   "Movimento rilevato o tessera appena individuata. Mantieni la tessera ferma.";
+ }
+
+ previousCard = card;
+
+ const n = Math.min(cardFrames, CARD_STABLE_REQUIRED);
+
+ $("cardCount").textContent = n;
+ $("cardProgress").style.width =
+  (n / CARD_STABLE_REQUIRED * 100) + "%";
+
+ if (cardFrames >= CARD_STABLE_REQUIRED) {
+  completeCalibration();
+ }
+}
+
+function orderPoints(points) {
+ const center = points.reduce(
+  (s, p) => ({ x: s.x + p.x / 4, y: s.y + p.y / 4 }),
+  { x: 0, y: 0 }
+ );
+
+ return [...points].sort((a, b) =>
+  Math.atan2(a.y - center.y, a.x - center.x) -
+  Math.atan2(b.y - center.y, b.x - center.x)
+ ).reduce((out, p) => {
+  out.push(p);
+  return out;
+ }, []).sort((a, b) => a.y - b.y).length
+  ? orderPointsByCorners(points)
+  : points;
+}
+
+function orderPointsByCorners(points) {
+ const sorted = [...points].sort((a, b) => a.y - b.y);
+ const top = sorted.slice(0, 2).sort((a, b) => a.x - b.x);
+ const bottom = sorted.slice(2, 4).sort((a, b) => a.x - b.x);
+
+ return [top[0], top[1], bottom[1], bottom[0]];
+}
+
+function dist(a, b) {
+ return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function cardStable(a, b) {
+ const center = c => c.points.reduce(
+  (s, p) => ({ x: s.x + p.x / 4, y: s.y + p.y / 4 }),
+  { x: 0, y: 0 }
+ );
+
+ const ca = center(a);
+ const cb = center(b);
+
+ return Math.hypot(ca.x - cb.x, ca.y - cb.y) < 15 &&
+  Math.abs(a.longSide - b.longSide) / a.longSide < 0.025;
+}
+
+function drawCard(card) {
+ ctx.strokeStyle = "#00e676";
+ ctx.lineWidth = 5;
+ ctx.beginPath();
+
+ card.points.forEach((p, i) =>
+  i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)
+ );
+
+ ctx.closePath();
+ ctx.stroke();
+ ctx.fillStyle = "#00e676";
+
+ card.points.forEach(p => {
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+  ctx.fill();
+ });
+}
+
+function completeCalibration() {
+ if (cardSamples.length < 40) return;
+
+ const sorted = [...cardSamples].sort((a, b) => a - b);
+ const med = median(sorted);
+ const good = sorted.filter(v => Math.abs(v - med) / med < 0.04);
+
+ if (good.length < 35) {
+  cardFrames = 0;
+  cardSamples = [];
+
+  $("status").className = "status bad";
+  $("status").textContent =
+   "Calibrazione instabile. Mantieni la tessera ferma e riprova.";
+
+  return;
+ }
+
+ pxPerMm = median(good);
+ phase = 1;
+ cardFrames = 0;
+ faceSamples = [];
+ stableFrames = 0;
+
+ $("title").textContent = "Fase 2 — Misurazione del volto";
+
+ $("instructions").textContent =
+  "Calibrazione registrata. Togli lentamente la tessera senza spostare la testa; mantieni l'occhiale indossato e guarda dritto nella fotocamera.";
+
+ $("cardGuide").classList.add("hidden");
+ $("faceGuide").classList.remove("hidden");
+ $("calArea").classList.add("hidden");
+ $("measureArea").classList.remove("hidden");
+
+ $("status").className = "status ok";
+ $("status").textContent =
+  "Calibrazione completata. Togli la tessera senza muovere la testa.";
+}
+
+function faceFrame() {
+ if (!faceLandmarker) {
+  $("status").textContent =
+   "Caricamento del rilevamento volto…";
+  return;
+ }
+
+ let result;
+
+ try {
+  result = faceLandmarker.detectForVideo(video, performance.now());
+ } catch (e) {
+  console.error(e);
+  return;
+ }
+
+ if (!result.faceLandmarks || !result.faceLandmarks.length) {
+  $("faceState").textContent = "Non rilevato";
+  faceSamples = [];
+  stableFrames = 0;
+
+  $("measureCount").textContent = "0";
+  $("measureProgress").style.width = "0%";
+  $("status").className = "status bad";
+  $("status").textContent =
+   "Volto non rilevato. Guarda dritto nella fotocamera.";
+
+  return;
+ }
+
+ const lm = result.faceLandmarks[0];
+
+ $("faceState").textContent = "Rilevato";
+
+ drawLandmarks(lm);
+
+ const m = measureFace(lm);
+
+ if (!m) {
+  faceSamples = [];
+  stableFrames = 0;
+
+  $("status").className = "status bad";
+  $("status").textContent =
+   "Posizione non valida: tieni il volto frontale e fermo.";
+
+  return;
+ }
+
+ if (!faceWidthReference) {
+  faceWidthReference = m.faceWidth;
+ }
+
+ const factor = faceWidthReference / m.faceWidth;
+ const total = m.pupilDistance * factor / pxPerMm;
+
+ if (total < 35 || total > 90) {
+  faceSamples = [];
+  stableFrames = 0;
+
+  $("status").className = "status bad";
+  $("status").textContent =
+   "Valore non plausibile: riposiziona il volto e guarda dritto.";
+
+  return;
+ }
+
+ faceSamples.push({
+  total,
+  od: m.od * factor / pxPerMm,
+  os: m.os * factor / pxPerMm
+ });
+
+ if (faceSamples.length > 100) {
+  faceSamples.shift();
+ }
+
+ const med = median(faceSamples.map(x => x.total));
+
+ if (Math.abs(total - med) < 1.2) {
+  stableFrames++;
+ } else {
+  stableFrames = Math.max(0, stableFrames - 2);
+ }
+
+ const n = Math.min(stableFrames, MEASURE_REQUIRED);
+
+ $("measureCount").textContent = n;
+ $("measureProgress").style.width =
+  (n / MEASURE_REQUIRED * 100) + "%";
+
+ $("status").className = "status";
+ $("status").textContent =
+  "Volto rilevato. Non muoverti durante la misurazione.";
+
+ if (stableFrames >= MEASURE_REQUIRED) {
+  finishMeasurement();
+ }
+}
+
+function measureFace(lm) {
+ const W = video.videoWidth;
+ const H = video.videoHeight;
+
+ const p = i => ({
+  x: lm[i].x * W,
+  y: lm[i].y * H
+ });
+
+ const a = avg([468, 469, 470, 471, 472].map(p));
+ const b = avg([473, 474, 475, 476, 477].map(p));
+
+ const eyeA = p(33);
+ const eyeB = p(263);
+ const nose = p(1);
+
+ const dx = eyeB.x - eyeA.x;
+ const dy = eyeB.y - eyeA.y;
+ const eyeLen = Math.hypot(dx, dy);
+
+ if (eyeLen < 70) return null;
+
+ const angle = Math.abs(
+  Math.atan2(dy, dx) * 180 / Math.PI
+ );
+
+ if (angle > 12 && angle < 168) return null;
+
+ const faceWidth = dist(p(234), p(454));
+
+ if (faceWidth < 140) return null;
+
+ const t = (
+  (nose.x - eyeA.x) * dx +
+  (nose.y - eyeA.y) * dy
+ ) / (eyeLen * eyeLen);
+
+ const mid = {
+  x: eyeA.x + t * dx,
+  y: eyeA.y + t * dy
+ };
+
+ return {
+  pupilDistance: dist(a, b),
+  od: dist(a, mid),
+  os: dist(b, mid),
+  faceWidth
+ };
+}
+
+function avg(arr) {
+ return {
+  x: arr.reduce((s, p) => s + p.x, 0) / arr.length,
+  y: arr.reduce((s, p) => s + p.y, 0) / arr.length
+ };
+}
+
+function drawLandmarks(lm) {
+ const W = video.videoWidth;
+ const H = video.videoHeight;
+
+ [1, 4, 6, 10, 33, 133, 263, 362, 234, 454, 61, 291, 152]
+ .forEach(i => {
+  ctx.fillStyle = "#ffd400";
+  ctx.beginPath();
+  ctx.arc(lm[i].x * W, lm[i].y * H, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+ });
+
+ [[468, 469, 470, 471, 472], [473, 474, 475, 476, 477]]
+ .forEach(ids => {
+  const c = avg(ids.map(i => ({
+   x: lm[i].x * W,
+   y: lm[i].y * H
+  })));
+
+  ctx.strokeStyle = "#ffd400";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = "#ff3030";
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, 5, 0, Math.PI * 2);
+  ctx.fill();
+ });
+}
+
+function finishMeasurement() {
+ if (finished) return;
+ finished = true;
+
+ const recent = faceSamples.slice(-40);
+
+ const total = median(recent.map(x => x.total));
+ const od = median(recent.map(x => x.od));
+ const os = median(recent.map(x => x.os));
+ const sd = stddev(recent.map(x => x.total));
+
+ $("pdTotal").textContent = total.toFixed(1);
+ $("pdOD").textContent = od.toFixed(1) + " mm";
+ $("pdOS").textContent = os.toFixed(1) + " mm";
+
+ $("quality").textContent =
+  sd <= 0.5 ? "Stabile" :
+  sd <= 1 ? "Abbastanza stabile" :
+  "Da verificare";
+
+ $("result").classList.remove("hidden");
+ $("status").className = "status ok";
+ $("status").textContent =
+  "Misurazione completata. Verifica il risultato con l'ottico.";
+
+ $("measureProgress").style.width = "100%";
+}
+
+function median(arr) {
+ if (!arr.length) return 0;
+
+ const s = [...arr].sort((a, b) => a - b);
+ const m = Math.floor(s.length / 2);
+
+ return s.length % 2
+  ? s[m]
+  : (s[m - 1] + s[m]) / 2;
+}
+
+function stddev(arr) {
+ if (arr.length < 2) return 0;
+
+ const m = arr.reduce((s, x) => s + x, 0) / arr.length;
+
+ return Math.sqrt(
+  arr.reduce((s, x) => s + (x - m) ** 2, 0) /
+  (arr.length - 1)
+ );
+}
 </script>
-
 </body>
 </html>
