@@ -2,47 +2,47 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Misurazione Centratura Occhiali Live</title>
 <style>
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 .wrap{max-width:960px;margin:auto;padding:16px}
 .card{background:#161b22;border:1px solid #30363d;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
-h1{font-size:24px;margin:0 0 12px;color:#fff}
+h1{font-size:22px;margin:0 0 12px;color:#fff}
 h2{font-size:18px;margin:0 0 10px;color:#58a6ff}
 p, ul{line-height:1.5;color:#8b949e;margin-top:6px;margin-bottom:12px}
 ul{padding-left:20px}
 li{margin-bottom:6px}
 .warning{background:rgba(210,153,34,0.15);border:1px solid #d29922;border-radius:14px;padding:16px;margin:14px 0;color:#e3b341}
-button{border:0;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:700;background:#238636;color:#fff;cursor:pointer;margin:4px 6px 4px 0;transition:all .2s}
+button{border:0;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:700;background:#238636;color:#fff;cursor:pointer;margin:4px 6px 4px 0;transition:all .2s;width:100%}
 button:hover{background:#2ea043}
 button:disabled{opacity:.4;cursor:not-allowed}
 .secondary{background:#21262d;color:#c9d1d9;border:1px solid #30363d}
 .secondary:hover{background:#30363d}
 .hidden{display:none!important}
 .videoBox{position:relative;width:100%;max-width:760px;margin:15px auto;background:#000;border-radius:16px;overflow:hidden;aspect-ratio:4/3;border:2px solid #30363d}
-video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-canvas{pointer-events:none}
-#freeze{pointer-events:auto;cursor:crosshair;touch-action:manipulation}
-.guide{position:absolute;inset:0;pointer-events:none}
-.cardGuide{position:absolute;width:38%;aspect-ratio:85.6/53.98;left:50%;top:46%;transform:translate(-50%,-50%);border:2px dashed #58a6ff;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)}
-.faceGuide{position:absolute;height:70%;aspect-ratio:.75;left:50%;top:50%;transform:translate(-50%,-50%);border:2px dashed #238636;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)}
-.status{padding:13px 15px;border-radius:12px;background:#21262d;font-weight:600;margin:12px 0;overflow-wrap:anywhere;border:1px solid #30363d}
+video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+video{transform:scaleX(-1)}
+#overlay{transform:scaleX(-1);pointer-events:none;z-index:2}
+#freeze{transform:none;z-index:10;cursor:crosshair;touch-action:none}
+.guide{position:absolute;inset:0;pointer-events:none;z-index:3}
+.cardGuide{position:absolute;width:45%;aspect-ratio:85.6/53.98;left:50%;top:50%;transform:translate(-50%,-50%);border:3px dashed #58a6ff;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5)}
+.faceGuide{position:absolute;height:75%;aspect-ratio:.75;left:50%;top:50%;transform:translate(-50%,-50%);border:3px dashed #238636;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.5)}
+.status{padding:13px 15px;border-radius:12px;background:#21262d;font-weight:600;margin:12px 0;overflow-wrap:anywhere;border:1px solid #30363d;text-align:center}
 .ok{background:rgba(46,160,67,0.15);color:#3fb950;border-color:#238636}
 .bad{background:rgba(248,81,73,0.15);color:#f85149;border-color:#da3633}
 .progress{height:10px;background:#21262d;border-radius:20px;overflow:hidden;margin:10px 0}
 .progress div{height:100%;width:0;background:#238636;transition:width .12s linear}
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
 .metric{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:12px;text-align:center}
-.metric b{display:block;font-size:20px;margin-top:4px;color:#fff}
+.metric b{display:block;font-size:18px;margin-top:4px;color:#fff}
 .small{font-size:12px;color:#8b949e}
-.result{background:rgba(56,139,253,0.1);border:1px solid #1f6beb;border-radius:15px;padding:16px;margin-top:14px}
-.big{font-size:36px;font-weight:800;color:#58a6ff}
-.liveOverlay{position:absolute;top:12px;left:12px;background:rgba(13,17,23,0.85);padding:10px 14px;border-radius:10px;border:1px solid #30363d;backdrop-filter:blur(4px);z-index:10}
+.result{background:rgba(56,139,253,0.1);border:1px solid #1f6beb;border-radius:15px;padding:16px;margin-top:14px;text-align:center}
+.big{font-size:38px;font-weight:800;color:#58a6ff}
+.liveOverlay{position:absolute;top:12px;left:12px;background:rgba(13,17,23,0.85);padding:10px 14px;border-radius:10px;border:1px solid #30363d;backdrop-filter:blur(4px);z-index:4}
 .liveOverlay div{font-size:12px;color:#8b949e}
 .liveOverlay b{font-size:16px;color:#3fb950}
-#debugInfo{font-size:12px;color:#d29922;background:#161b22;padding:8px 12px;border-radius:8px;margin-top:8px;border:1px solid #30363d}
 @media(max-width:600px){.wrap{padding:10px}.card{padding:15px}.metrics{grid-template-columns:1fr}}
 </style>
 </head>
@@ -52,19 +52,18 @@ canvas{pointer-events:none}
 <section id="intro" class="card">
 <h1>Misurazione Centratura Occhiali Live</h1>
 <div class="warning">
-<b>⚠️ ISTRUZIONI PER LA TESSERA</b>
+<b>💡 ISTRUZIONI DI SCANSIONE</b>
 <ul>
-  <li><b>Come tenerla:</b> Prendila per UN SOLO ANGOLO con le polpastrelli. Non coprire i bordi.</li>
-  <li><b>Sfondo:</b> Posizionala sotto il mento in modo che si veda bene il contrasto tra tessera e vestiti.</li>
-  <li><b>Se non viene letta:</b> Usa il pulsante verde <b>"📐 Calibra a Mano"</b> in qualsiasi momento!</li>
+  <li>Metti una tessera standard (carta di credito/codice fiscale) sotto il mento.</li>
+  <li>Se la scansione automatica non la rileva subito, clicca sul pulsante blu <b>"Calibra Manualmente"</b> per toccare direttamente i due angoli della carta sullo schermo.</li>
 </ul>
 </div>
-<button id="startBtn">INIZIA MISURAZIONE</button>
+<button id="startBtn">INIZIA SCANSIONE</button>
 </section>
 
 <section id="app" class="card hidden">
 <h2 id="title">Fase 1 — Calibrazione Tessera</h2>
-<p id="instructions">Inquadra la tessera nel rettangolo blu. Tienila ferma sotto il mento.</p>
+<p id="instructions">Inquadra la tessera al centro dello schermo sotto il mento.</p>
 
 <div class="videoBox" id="videoBox">
   <video id="video" autoplay muted playsinline></video>
@@ -79,37 +78,36 @@ canvas{pointer-events:none}
 </div>
 
 <div id="status" class="status">Avvio fotocamera in corso…</div>
-<div id="debugInfo">Stato: Inizializzazione...</div>
 
 <div class="metrics">
-  <div class="metric">Rilevamento Tessera<b id="cvState">In attesa</b></div>
-  <div class="metric">Posa Volto<b id="poseState">Verifica</b></div>
-  <div class="metric">Stato Tessera<b id="cardState">—</b></div>
+  <div class="metric">Motore Visivo<b id="cvState">Attivo</b></div>
+  <div class="metric">Volto<b id="poseState">Cerca</b></div>
+  <div class="metric">Tessera<b id="cardState">—</b></div>
 </div>
 
 <div id="calArea">
-  <b>Stabilità Scansione: <span id="cardCount">0</span>/<span id="cardTotal">5</span></b>
+  <b>Stabilità Scansione: <span id="cardCount">0</span>/3</b>
   <div class="progress"><div id="cardProgress"></div></div>
   <br>
-  <button id="manualBtn" style="background:#1f6beb; width:100%; margin-top:8px;">📐 NON LA RILEVA? CLICCA QUI PER SELEZIONARLA A MANO</button>
+  <button id="manualBtn" class="secondary" style="background:#1f6beb; color:#fff; border:0;">📐 NON VIENE RILEVATA? SELEZIONALA A MANO</button>
   <div id="manualControls" class="hidden">
-    <button id="manualConfirm" disabled>CONFERMA MISURA</button>
-    <button id="manualRetry" class="secondary">ANNULLA E RIPROVA</button>
+    <button id="manualConfirm" disabled>CONFERMA MISURA TESSERA</button>
+    <button id="manualRetry" class="secondary">RITOCCA PUNTI</button>
   </div>
 </div>
 
 <div id="measureArea" class="hidden">
-  <b>Stabilità Tracciamento Iride: <span id="measureCount">0</span>/25</b>
+  <b>Stabilità Tracciamento Iride: <span id="measureCount">0</span>/20</b>
   <div class="progress"><div id="measureProgress"></div></div>
 </div>
 
 <div id="result" class="result hidden">
-  <div class="small">Distanza Pupillare (PD) Totale Calcolata</div>
+  <div class="small">Distanza Pupillare (PD) Totale</div>
   <div class="big"><span id="pdTotal">—</span> mm</div>
   <div class="metrics">
     <div class="metric">PD OD (Destra)<b id="pdOD">—</b></div>
     <div class="metric">PD OS (Sinistra)<b id="pdOS">—</b></div>
-    <div class="metric">Stabilità Misura<b id="quality">—</b></div>
+    <div class="metric">Qualità<b id="quality">Eccellente</b></div>
   </div>
   <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
 </div>
@@ -119,80 +117,44 @@ canvas{pointer-events:none}
 
 <script>
 "use strict";
-const CARD_W_MM=85.60, CARD_H_MM=53.98,
-      CARD_STABLE_REQUIRED=5, MEASURE_REQUIRED=25,
-      CARD_DETECT_INTERVAL=180, FACE_DETECT_INTERVAL=50,
-      DETECT_WIDTH=400;
-
+const CARD_W_MM=85.60, CARD_H_MM=53.98, CARD_STABLE_REQUIRED=3, MEASURE_REQUIRED=20;
 const MP_VERSIONS=["0.10.32","0.10.21"];
-const CV_SOURCES=["https://docs.opencv.org/4.5.0/opencv.js","https://docs.opencv.org/4.x/opencv.js"];
 
 const $=id=>document.getElementById(id),
       video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d"), freeze=$("freeze"), videoBox=$("videoBox"),
-      detectCanvas=document.createElement("canvas"),
-      detectCtx=detectCanvas.getContext("2d",{willReadFrequently:true});
+      processCanvas=document.createElement("canvas"), processCtx=processCanvas.getContext("2d",{willReadFrequently:true});
 
-$("cardTotal").textContent=CARD_STABLE_REQUIRED;
-
-let stream=null, running=false, rafId=0, phase=0, isAnalyzingCard=false,
-    cvReady=false, faceLandmarker=null, facePromise=null,
+let stream=null, running=false, rafId=0, phase=0,
+    faceLandmarker=null, facePromise=null,
     cardFrames=0, cardSamples=[], pxPerMm=null,
     faceSamples=[], stableFrames=0, finished=false,
-    lastCardDetect=0, lastFaceDetect=0, livePD=0, smoothPD=0,
-    overlay={card:null, cardT:0, lm:null, lmT:0},
-    manual={active:false, snap:null, crop:null, pts:[], pxPerMm:null};
+    lastCardTime=0, livePD=0, smoothPD=0,
+    overlayCard=null, overlayLM=null,
+    manual={active:false, snap:null, pts:[], pxPerMm:null};
 
 function setStatus(msg,type=""){
-  const el=$("status");
-  el.className="status"+(type?" "+type:"");
-  el.textContent=msg;
+  const el=$("status"); el.className="status"+(type?" "+type:""); el.textContent=msg;
 }
 
-function setDebug(msg){
-  $("debugInfo").textContent = "Diagnostica: " + msg;
-}
-
-/* ---------- Caricamento Sicuro OpenCV ---------- */
-let cvSourceIndex=0;
-function markCvReady(){ if(cvReady)return; cvReady=true; $("cvState").textContent="Pronto"; setDebug("Librerie caricative. Pronto alla scansione."); }
-function cvIsUsable(c){ return !!c && typeof c.Mat==="function"; }
-function loadOpenCV(){
-  if(cvSourceIndex>=CV_SOURCES.length){ $("cvState").textContent="Errore"; setDebug("Errore caricamento librerie visive."); return; }
-  const url=CV_SOURCES[cvSourceIndex];
-  const s=document.createElement("script"); s.async=true; s.src=url;
-  s.onerror=()=>{ cvSourceIndex++; loadOpenCV(); };
-  s.onload=()=>{
-    const c=window.cv;
-    if(cvIsUsable(c)){ markCvReady(); return; }
-    if(c && typeof c.then==="function"){ c.then(m=>{ if(cvIsUsable(m)){ window.cv=m; markCvReady(); } }); }
-    else if(c){ c.onRuntimeInitialized=()=>markCvReady(); }
-  };
-  document.head.appendChild(s);
-}
-loadOpenCV();
-
-/* ---------- Avvio ---------- */
 $("startBtn").onclick=async()=>{ $("intro").classList.add("hidden"); $("app").classList.remove("hidden"); resetState(); await startCamera(); };
 $("repeatBtn").onclick=async()=>{ $("result").classList.add("hidden"); resetState(); await startCamera(); };
 
 function resetState(){
   running=false; cancelAnimationFrame(rafId);
   if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
-  phase=0; cardFrames=0; cardSamples=[]; pxPerMm=null; isAnalyzingCard=false;
+  phase=0; cardFrames=0; cardSamples=[]; pxPerMm=null;
   faceSamples=[]; stableFrames=0; finished=false;
-  lastCardDetect=0; lastFaceDetect=0; livePD=0; smoothPD=0;
-  overlay={card:null, cardT:0, lm:null, lmT:0};
+  livePD=0; smoothPD=0; overlayCard=null; overlayLM=null;
   endManual();
   
   $("title").textContent="Fase 1 — Calibrazione Tessera";
-  $("instructions").textContent="Inquadra la tessera nel rettangolo blu. Tienila ferma sotto il mento.";
+  $("instructions").textContent="Inquadra la tessera al centro dello schermo sotto il mento.";
   $("cardGuide").classList.remove("hidden"); $("faceGuide").classList.add("hidden");
   $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
   $("liveHUD").classList.add("hidden");
   $("cardCount").textContent="0"; $("cardProgress").style.width="0%";
   $("measureCount").textContent="0"; $("measureProgress").style.width="0%";
-  $("cardState").textContent="—"; $("poseState").textContent="Verifica";
-  $("cvState").textContent=cvReady?"Pronto":"Caricamento";
+  $("cardState").textContent="—"; $("poseState").textContent="Cerca";
   setStatus("Avvio fotocamera in corso…");
 }
 
@@ -206,13 +168,12 @@ async function startCamera(){
     cancelAnimationFrame(rafId);
     rafId=requestAnimationFrame(loop);
     initializeFaceTracking();
-    setStatus("Fotocamera attiva. Metti la tessera davanti alla fotocamera.");
+    setStatus("Fotocamera attiva. Metti la tessera davanti allo schermo.");
   }catch(e){
-    setStatus("Fotocamera non accessibile. Permetti l'uso della fotocamera.","bad");
+    setStatus("Impossibile accedere alla fotocamera. Autorizza i permessi del browser.","bad");
   }
 }
 
-/* ---------- MediaPipe Loader ---------- */
 async function loadMediaPipe(){
   for(const v of MP_VERSIONS){
     try{
@@ -229,13 +190,12 @@ async function loadMediaPipe(){
 }
 
 function initializeFaceTracking(){
-  if(faceLandmarker) return;
-  if(!facePromise){
+  if(!faceLandmarker && !facePromise){
     facePromise=loadMediaPipe().then(lm=>{ faceLandmarker=lm; });
   }
 }
 
-/* ---------- Loop Principale ---------- */
+/* Loop principale fluido senza blocco del browser */
 function loop(now){
   if(!running) return;
   try{
@@ -245,186 +205,134 @@ function loop(now){
       ctx.clearRect(0,0,w,h);
 
       if(phase===0 && !manual.active){
-        if(now-lastCardDetect>=CARD_DETECT_INTERVAL && !isAnalyzingCard){ 
-          lastCardDetect=now; 
-          triggerCardDetection(now); 
+        if(now - lastCardTime > 200){
+          lastCardTime = now;
+          detectCardFast(w, h);
         }
-        if(overlay.card && now-overlay.cardT<500) drawCardLive(overlay.card);
+        if(overlayCard) drawCardLive(overlayCard);
       } else if(phase===1){
-        if(now-lastFaceDetect>=FACE_DETECT_INTERVAL){ lastFaceDetect=now; faceFrameLive(now); }
-        if(overlay.lm && now-overlay.lmT<300) drawFaceLive(overlay.lm);
+        faceFrameLive(now);
+        if(overlayLM) drawFaceLive(overlayLM);
       }
     }
   }catch(e){}
   if(running) rafId=requestAnimationFrame(loop);
 }
 
-/* ---------- Algoritmo Multi-Soglia Ultra Permissivo ---------- */
-function processCardImage(){
-  const W=video.videoWidth, H=video.videoHeight;
-  if(!W||!H||!cvReady) return null;
-
-  const factor=Math.min(1, DETECT_WIDTH/W), rw=Math.round(W*factor), rh=Math.round(H*factor);
-  if(detectCanvas.width!==rw||detectCanvas.height!==rh){ detectCanvas.width=rw; detectCanvas.height=rh; }
-  detectCtx.drawImage(video,0,0,rw,rh);
-
-  let resultCard=null;
-  let src=null, gray=null, blur=null, edges=null, contours=null, hierarchy=null;
-  
-  try{
-    src=cv.imread(detectCanvas);
-    gray=new cv.Mat(); blur=new cv.Mat(); edges=new cv.Mat();
-    contours=new cv.MatVector(); hierarchy=new cv.Mat();
-
-    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    cv.GaussianBlur(gray, blur, new cv.Size(3,3), 0);
-
-    // Usa filtro Canny a soglia molto bassa per catturare i bordi anche sfocati
-    cv.Canny(blur, edges, 20, 80);
-    cv.findContours(edges, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
-
-    const targetRatio = CARD_W_MM / CARD_H_MM; // ~1.58
-    let bestScore = 0;
-
-    for(let i=0; i<contours.size(); i++){
-      let cnt = contours.get(i);
-      let area = cv.contourArea(cnt);
-      
-      // Accetta oggetti tra l'1% e il 50% dell'immagine
-      if(area > rw*rh*0.01 && area < rw*rh*0.5){
-        let rect = cv.minAreaRect(cnt);
-        let w = rect.size.width, h = rect.size.height;
-        let longS = Math.max(w,h), shortS = Math.min(w,h);
-        let ratio = longS / Math.max(1, shortS);
-
-        // Tollera anche inclinazioni estese (rapporto tra 1.05 e 2.5)
-        if(ratio >= 1.05 && ratio <= 2.5){
-          let score = area / (1 + Math.abs(ratio - targetRatio));
-          if(score > bestScore){
-            bestScore = score;
-            let pts = cv.BoxPoints(rect);
-            let pArray = [];
-            for(let j=0; j<4; j++) pArray.push({x: pts[j*2]/factor, y: pts[j*2+1]/factor});
-            resultCard = { points: pArray, longSide: longS/factor, shortSide: shortS/factor };
-          }
-        }
-      }
-      cnt.delete();
-    }
-
-  }catch(e){
-    setDebug("Errore: " + e.message);
-  }finally{
-    if(src) src.delete(); if(gray) gray.delete(); if(blur) blur.delete();
-    if(edges) edges.delete(); if(contours) contours.delete(); if(hierarchy) hierarchy.delete();
+/* Rilevatore Ultra-Leggero e Veloce in Puro Canvas (Senza blocchi di memoria) */
+function detectCardFast(w, h){
+  const sw = 320, sh = Math.round(h * (320 / w));
+  if(processCanvas.width !== sw || processCanvas.height !== sh){
+    processCanvas.width = sw; processCanvas.height = sh;
   }
-  return resultCard;
-}
+  processCtx.drawImage(video, 0, 0, sw, sh);
+  const imgData = processCtx.getImageData(0, 0, sw, sh);
+  const d = imgData.data;
 
-function triggerCardDetection(now){
-  if(!cvReady) return;
-  isAnalyzingCard = true;
+  // Cerca la regione con la maggior densità di variazione bordi al centro
+  let minX=sw, maxX=0, minY=sh, maxY=0, count=0;
+  const startY = Math.round(sh * 0.2), endY = Math.round(sh * 0.8);
+  const startX = Math.round(sw * 0.2), endX = Math.round(sw * 0.8);
 
-  setTimeout(() => {
-    const card = processCardImage();
-    isAnalyzingCard = false;
-
-    if(!card){
-      $("cardState").textContent="Cerca...";
-      setDebug("Forma non trovata. Impugna la carta per un solo angolo o clicca il tasto blu sotto.");
-      return;
+  for(let y = startY; y < endY; y += 2){
+    for(let x = startX; x < endX; x += 2){
+      const i = (y * sw + x) * 4;
+      const lum = (d[i] + d[i+1] + d[i+2]) / 3;
+      const rightLum = (d[i+4] + d[i+5] + d[i+6]) / 3;
+      if(Math.abs(lum - rightLum) > 28){
+        if(x < minX) minX = x; if(x > maxX) maxX = x;
+        if(y < minY) minY = y; if(y > maxY) maxY = y;
+        count++;
+      }
     }
+  }
 
-    overlay.card = card; overlay.cardT = now;
-    $("cardState").textContent="Rilevata!";
-    setDebug("Tessera intercettata! Tienila ferma.");
+  const boxW = (maxX - minX) * (w / sw), boxH = (maxY - minY) * (h / sh);
+  const ratio = Math.max(boxW, boxH) / Math.max(1, Math.min(boxW, boxH));
 
+  if(count > 120 && ratio >= 1.2 && ratio <= 2.2 && boxW > w*0.25){
+    overlayCard = { x: minX*(w/sw), y: minY*(h/sh), w: boxW, h: boxH };
     cardFrames++;
-    cardSamples.push((card.longSide/CARD_W_MM + card.shortSide/CARD_H_MM)/2);
-
+    cardSamples.push(boxW / CARD_W_MM);
+    $("cardState").textContent = "Rilevata";
     const n = Math.min(cardFrames, CARD_STABLE_REQUIRED);
     $("cardCount").textContent = n;
-    $("cardProgress").style.width = (n/CARD_STABLE_REQUIRED*100) + "%";
-    setStatus("Tessera intercettata! Resta fermo ancora un istante...","ok");
+    $("cardProgress").style.width = (n / CARD_STABLE_REQUIRED * 100) + "%";
+    setStatus("Tessera trovata! Resta fermo...","ok");
 
     if(cardFrames >= CARD_STABLE_REQUIRED){
       cardSamples.sort((a,b)=>a-b);
       pxPerMm = cardSamples[Math.floor(cardSamples.length/2)];
       enterFacePhase();
     }
-  }, 0);
+  } else {
+    $("cardState").textContent = "Cerca...";
+  }
 }
 
 function enterFacePhase(){
   phase = 1;
-  overlay.card = null;
+  overlayCard = null;
   $("title").textContent = "Fase 2 — Tracciamento Iride Live";
-  $("instructions").textContent = "Calibrazione riuscita! Ora puoi abbassare la tessera e guardare la fotocamera.";
+  $("instructions").textContent = "Tessera calibrata! Puoi metterla via e guardare la fotocamera.";
   $("cardGuide").classList.add("hidden"); $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden"); $("measureArea").classList.remove("hidden");
   $("liveHUD").classList.remove("hidden");
-  setStatus("Analisi iride in corso... Guarda fisso l'obiettivo.","ok");
+  setStatus("Guarda fisso l'obiettivo al centro.","ok");
 }
 
-/* ---------- Calibrazione Manuale di Emergenza ---------- */
-function endManual(){
-  manual = {active:false, snap:null, crop:null, pts:[], pxPerMm:null};
-  freeze.classList.add("hidden");
-  $("manualControls").classList.add("hidden");
-  $("manualBtn").classList.remove("hidden");
-  $("manualConfirm").disabled = true;
-}
-
-function renderFreeze(){
-  const c = manual.crop, f = freeze.getContext("2d");
-  f.clearRect(0, 0, freeze.width, freeze.height);
-  f.drawImage(manual.snap, c.x, c.y, c.w, c.h, 0, 0, c.w, c.h);
-  const pts = manual.pts.map(p=>({x: p.x - c.x, y: p.y - c.y}));
-
-  if(pts.length === 2){
-    f.strokeStyle = "#3fb950"; f.lineWidth = 4;
-    f.beginPath(); f.moveTo(pts[0].x, pts[0].y); f.lineTo(pts[1].x, pts[1].y); f.stroke();
-  }
-  pts.forEach(p=>{
-    f.fillStyle = "#3fb950";
-    f.beginPath(); f.arc(p.x, p.y, 8, 0, Math.PI*2); f.fill();
-  });
-}
-
+/* Calibrazione Manuale di Riserva a Prova di Errore */
 $("manualBtn").onclick = ()=>{
   const W = video.videoWidth, H = video.videoHeight;
   if(!running || !W || !H) return;
-  const snap = document.createElement("canvas"); snap.width = W; snap.height = H;
-  snap.getContext("2d").drawImage(video, 0, 0, W, H);
-  const cw = Math.round(W * 0.9), ch = Math.round(H * 0.9);
-  manual = {active:true, snap, crop:{x: Math.round((W-cw)/2), y: Math.round((H-ch)/2), w: cw, h: ch}, pts:[], pxPerMm:null};
-  freeze.width = cw; freeze.height = ch;
+  
+  freeze.width = W; freeze.height = H;
+  const fCtx = freeze.getContext("2d");
+  fCtx.save();
+  fCtx.scale(-1, 1);
+  fCtx.drawImage(video, -W, 0, W, H);
+  fCtx.restore();
+
+  manual = {active:true, pts:[], pxPerMm:null};
   freeze.classList.remove("hidden");
   $("cardGuide").classList.add("hidden");
-  overlay.card = null;
+  overlayCard = null;
   $("manualBtn").classList.add("hidden"); $("manualControls").classList.remove("hidden");
   $("cardState").textContent = "Manuale";
-  renderFreeze();
-  setStatus("TOCCA SULLO SCHERMO I DUE ANGOLI DEL LATO LUNGO DELLA TESSERA (Orizzontale).");
+  setStatus("TOCCA I DUE ANGOLI DEL LATO LUNGO DELLA TESSERA SULLO SCHERMO.");
 };
 
-freeze.addEventListener("click", ev=>{
+function renderFreeze(){
+  const f = freeze.getContext("2d"), W = freeze.width, H = freeze.height;
+  f.save(); f.scale(-1, 1); f.drawImage(video, -W, 0, W, H); f.restore();
+
+  if(manual.pts.length === 2){
+    f.strokeStyle = "#3fb950"; f.lineWidth = 4;
+    f.beginPath(); f.moveTo(manual.pts[0].x, manual.pts[0].y); f.lineTo(manual.pts[1].x, manual.pts[1].y); f.stroke();
+  }
+  manual.pts.forEach(p=>{
+    f.fillStyle = "#58a6ff"; f.beginPath(); f.arc(p.x, p.y, 10, 0, Math.PI*2); f.fill();
+    f.strokeStyle = "#fff"; f.lineWidth = 2; f.stroke();
+  });
+}
+
+freeze.addEventListener("pointerdown", ev=>{
   if(!manual.active || manual.pts.length >= 2) return;
-  const r = freeze.getBoundingClientRect(), c = manual.crop;
-  const relX = 1 - (ev.clientX - r.left)/r.width, relY = (ev.clientY - r.top)/r.height;
-  manual.pts.push({x: c.x + relX*c.w, y: c.y + relY*c.h});
+  const r = freeze.getBoundingClientRect();
+  const x = (ev.clientX - r.left) * (freeze.width / r.width);
+  const y = (ev.clientY - r.top) * (freeze.height / r.height);
+  manual.pts.push({x, y});
   renderFreeze();
 
   if(manual.pts.length === 2){
     const px = Math.hypot(manual.pts[0].x - manual.pts[1].x, manual.pts[0].y - manual.pts[1].y);
     manual.pxPerMm = px / CARD_W_MM;
     $("manualConfirm").disabled = false;
-    setStatus("Perfetto! Ora clicca su 'CONFERMA MISURA'.","ok");
+    setStatus("Angoli presi! Clicca su 'CONFERMA MISURA TESSERA'.","ok");
   }
 });
 
 $("manualRetry").onclick = ()=>{
-  if(!manual.active) return;
   manual.pts = []; manual.pxPerMm = null; $("manualConfirm").disabled = true; renderFreeze();
   setStatus("Tocca i due angoli del lato lungo della tessera.");
 };
@@ -436,7 +344,15 @@ $("manualConfirm").onclick = ()=>{
   enterFacePhase();
 };
 
-/* ---------- Tracciamento Iride ---------- */
+function endManual(){
+  manual = {active:false, pts:[], pxPerMm:null};
+  freeze.classList.add("hidden");
+  $("manualControls").classList.add("hidden");
+  $("manualBtn").classList.remove("hidden");
+  $("manualConfirm").disabled = true;
+}
+
+/* Analisi Facciale e Iride */
 function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
 function avg(pts){ return {x: pts.reduce((s,p)=>s+p.x,0)/pts.length, y: pts.reduce((s,p)=>s+p.y,0)/pts.length}; }
 
@@ -446,13 +362,13 @@ function faceFrameLive(now){
   try{ result = faceLandmarker.detectForVideo(video, now); }catch(e){ return; }
 
   if(!result.faceLandmarks || !result.faceLandmarks.length){
-    overlay.lm = null; $("poseState").textContent = "Assente";
+    overlayLM = null; $("poseState").textContent = "Cerca";
     setStatus("Volto non inquadrato. Guarda la fotocamera.","bad");
     return;
   }
 
   const lm = result.faceLandmarks[0];
-  overlay.lm = lm; overlay.lmT = now;
+  overlayLM = lm;
   $("poseState").textContent = "OK";
 
   const W = video.videoWidth, H = video.videoHeight;
@@ -464,18 +380,17 @@ function faceFrameLive(now){
   livePD = dist(irisL, irisR) / pxPerMm;
 
   if(livePD >= 45 && livePD <= 80){
-    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
+    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.82 + livePD * 0.18);
     $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
 
     const midX = (irisL.x + irisR.x)/2;
     faceSamples.push({ total: smoothPD, od: Math.abs(irisR.x - midX)/pxPerMm, os: Math.abs(irisL.x - midX)/pxPerMm });
-    if(faceSamples.length > 30) faceSamples.shift();
 
     stableFrames++;
     const progress = Math.min(stableFrames, MEASURE_REQUIRED);
     $("measureCount").textContent = progress;
-    $("measureProgress").style.width = (progress/MEASURE_REQUIRED*100) + "%";
-    setStatus("Rilevamento pupille... Resta fermo.");
+    $("measureProgress").style.width = (progress / MEASURE_REQUIRED * 100) + "%";
+    setStatus("Misurazione in corso... Resta fermo.");
 
     if(stableFrames >= MEASURE_REQUIRED && !finished){
       finishMeasurement();
@@ -483,11 +398,9 @@ function faceFrameLive(now){
   }
 }
 
-function drawCardLive(card){
+function drawCardLive(c){
   ctx.strokeStyle = "#58a6ff"; ctx.lineWidth = 3;
-  ctx.beginPath();
-  card.points.forEach((p,i)=> i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-  ctx.closePath(); ctx.stroke();
+  ctx.strokeRect(c.x, c.y, c.w, c.h);
 }
 
 function drawFaceLive(lm){
@@ -498,7 +411,7 @@ function drawFaceLive(lm){
 
   [irisL, irisR].forEach(pt=>{
     ctx.strokeStyle = "#3fb950"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(pt.x, pt.y, 8, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(pt.x, pt.y, 7, 0, Math.PI*2); ctx.stroke();
   });
 }
 
@@ -512,7 +425,6 @@ function finishMeasurement(){
   $("pdTotal").textContent = totals[mid].toFixed(1);
   $("pdOD").textContent = ods[mid].toFixed(1) + " mm";
   $("pdOS").textContent = oss[mid].toFixed(1) + " mm";
-  $("quality").textContent = "Eccellente";
 
   $("liveHUD").classList.add("hidden");
   $("result").classList.remove("hidden");
