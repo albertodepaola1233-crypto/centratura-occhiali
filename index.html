@@ -26,7 +26,7 @@ video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;t
 canvas{pointer-events:none}
 #freeze{pointer-events:auto;cursor:crosshair;touch-action:manipulation}
 .guide{position:absolute;inset:0;pointer-events:none}
-.cardGuide{position:absolute;width:28%;aspect-ratio:85.6/53.98;left:50%;top:46%;transform:translate(-50%,-50%);border:2px dashed #58a6ff;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)}
+.cardGuide{position:absolute;width:34%;aspect-ratio:85.6/53.98;left:50%;top:46%;transform:translate(-50%,-50%);border:2px dashed #58a6ff;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)}
 .faceGuide{position:absolute;height:70%;aspect-ratio:.75;left:50%;top:50%;transform:translate(-50%,-50%);border:2px dashed #238636;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)}
 .status{padding:13px 15px;border-radius:12px;background:#21262d;font-weight:600;margin:12px 0;overflow-wrap:anywhere;border:1px solid #30363d}
 .ok{background:rgba(46,160,67,0.15);color:#3fb950;border-color:#238636}
@@ -42,8 +42,7 @@ canvas{pointer-events:none}
 .liveOverlay{position:absolute;top:12px;left:12px;background:rgba(13,17,23,0.85);padding:10px 14px;border-radius:10px;border:1px solid #30363d;backdrop-filter:blur(4px);z-index:10}
 .liveOverlay div{font-size:12px;color:#8b949e}
 .liveOverlay b{font-size:16px;color:#3fb950}
-details{margin-top:12px}
-#debug{white-space:pre-wrap;font-size:11px;color:#8b949e;background:#0d1117;border-radius:8px;padding:10px;margin:8px 0;border:1px solid #30363d}
+#debugInfo{font-size:12px;color:#d29922;background:#161b22;padding:8px 12px;border-radius:8px;margin-top:8px;border:1px solid #30363d}
 @media(max-width:600px){.wrap{padding:10px}.card{padding:15px}.metrics{grid-template-columns:1fr}}
 </style>
 </head>
@@ -53,29 +52,26 @@ details{margin-top:12px}
 <section id="intro" class="card">
 <h1>Misurazione Centratura Occhiali Live</h1>
 <div class="warning">
-<b>⚠️ IMPORTANTE — INFORMATIVA E ISTRUZIONI COMPLETE</b>
-<p><b>1. Riservatezza e Trattamento Dati:</b><br>
-Il sistema utilizza la webcam esclusivamente per il calcolo geometrico e la stima dei parametri in tempo reale. Nessun fermo immagine, scansione o dato personale viene salvato o memorizzato su server esterni.</p>
+<b>⚠️ INFORMATIVA DI SICUREZZA E ISTRUZIONI COMPLETE</b>
+<p><b>1. Riservatezza Dati:</b><br>
+Il sistema utilizza la webcam unicamente per il calcolo geometrico e la misurazione dei parametri. Nessuna foto o dato viene salvato o inviato su server esterni.</p>
 
-<p><b>2. Protezione Dati Sensibili:</b><br>
-La tessera sanitaria o carta di credito serve unicamente come <b>riferimento dimensionale standard (85,6 mm)</b>. Puoi rivolgere il retro della carta o coprire i dati sensibili con un dito.</p>
+<p><b>2. Protezione Dati Sensibili sulla Tessera:</b><br>
+La tessera serve esclusivamente come riferimento di scala (85,6 mm). Mantieni il retro della carta rivolto verso la fotocamera o copri i dati con le dita.</p>
 
-<p><b>3. Come Tenere e Posizionare la Tessera:</b></p>
+<p><b>3. Come Impugnare e Posizionare:</b></p>
 <ul>
-  <li><b>Tenuta con le dita:</b> Impugna la tessera delicatamente per i lati o per il bordo inferiore.</li>
-  <li><b>Posizione:</b> Appoggia la tessera sotto il mento o sulla fronte.</li>
-  <li><b>Illuminazione:</b> Siediti a circa 40–60 cm dallo schermo in una stanza ben illuminata. Mantieni la testa dritta.</li>
+  <li><b>Tenuta:</b> Impugna la carta per un solo angolo o per il bordo inferiore.</li>
+  <li><b>Posizione:</b> Tienila ferma sotto il labbro inferiore (sul mento) oppure sopra la fronte.</li>
+  <li><b>Distanza:</b> Mantieni una distanza di circa 40–50 cm dalla fotocamera in un ambiente ben illuminato.</li>
 </ul>
-
-<p class="small">Se la tessera non viene rilevata automaticamente, puoi usare il pulsante «Calibra a mano».</p>
 </div>
-<p><b>Prima di iniziare:</b> indossa gli occhiali, prendi la tessera per i bordi e tieniti pronto a rimanere fermo.</p>
 <button id="startBtn">HO LETTO — INIZIA MISURAZIONE</button>
 </section>
 
 <section id="app" class="card hidden">
 <h2 id="title">Fase 1 — Calibrazione Tessera</h2>
-<p id="instructions">Tieni la tessera per i bordi, appoggiata sotto il mento o sulla fronte, dentro il riquadro tratteggiato.</p>
+<p id="instructions">Inquadra la tessera tenendola sotto il mento. Assicurati che non ci siano ombre forti su di essa.</p>
 
 <div class="videoBox" id="videoBox">
   <video id="video" autoplay muted playsinline></video>
@@ -90,17 +86,18 @@ La tessera sanitaria o carta di credito serve unicamente come <b>riferimento dim
 </div>
 
 <div id="status" class="status">Avvio fotocamera in corso…</div>
+<div id="debugInfo">Analisi contorni: in attesa della fotocamera...</div>
 
 <div class="metrics">
   <div class="metric">Rilevamento Tessera<b id="cvState">In attesa</b></div>
-  <div class="metric">Posa Volto 3D<b id="poseState">Verifica</b></div>
+  <div class="metric">Posa Volto<b id="poseState">Verifica</b></div>
   <div class="metric">Stato Tessera<b id="cardState">—</b></div>
 </div>
 
 <div id="calArea">
-  <b>Stabilità Tessera: <span id="cardCount">0</span>/<span id="cardTotal">10</span></b>
+  <b>Stabilità Scansione: <span id="cardCount">0</span>/<span id="cardTotal">8</span></b>
   <div class="progress"><div id="cardProgress"></div></div>
-  <button id="manualBtn" class="secondary">📏 Non la rileva? Calibra a mano</button>
+  <button id="manualBtn" class="secondary">📏 Non la legge? Calibra a mano</button>
   <div id="manualControls" class="hidden">
     <button id="manualConfirm" disabled>CONFERMA LATO</button>
     <button id="manualRetry" class="secondary">RIPROVA</button>
@@ -108,7 +105,7 @@ La tessera sanitaria o carta di credito serve unicamente come <b>riferimento dim
 </div>
 
 <div id="measureArea" class="hidden">
-  <b>Stabilità Tracciamento Iride Live: <span id="measureCount">0</span>/25</b>
+  <b>Stabilità Tracciamento Iride: <span id="measureCount">0</span>/25</b>
   <div class="progress"><div id="measureProgress"></div></div>
 </div>
 
@@ -122,11 +119,6 @@ La tessera sanitaria o carta di credito serve unicamente come <b>riferimento dim
   </div>
   <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
 </div>
-
-<details>
-  <summary class="small">Diagnostica Tecnica</summary>
-  <pre id="debug"></pre>
-</details>
 </section>
 
 </div>
@@ -134,9 +126,9 @@ La tessera sanitaria o carta di credito serve unicamente come <b>riferimento dim
 <script>
 "use strict";
 const CARD_W_MM=85.60, CARD_H_MM=53.98,
-      CARD_STABLE_REQUIRED=10, MEASURE_REQUIRED=25,
-      CARD_DETECT_INTERVAL=200, FACE_DETECT_INTERVAL=50,
-      DETECT_WIDTH=400; // Ridotta risoluzione per evitare blocchi della CPU
+      CARD_STABLE_REQUIRED=8, MEASURE_REQUIRED=25,
+      CARD_DETECT_INTERVAL=150, FACE_DETECT_INTERVAL=50,
+      DETECT_WIDTH=480;
 
 const MP_VERSIONS=["0.10.32","0.10.21"];
 const CV_SOURCES=["https://docs.opencv.org/4.5.0/opencv.js","https://docs.opencv.org/4.x/opencv.js"];
@@ -162,12 +154,16 @@ function setStatus(msg,type=""){
   el.textContent=msg;
 }
 
-/* ---------- Caricamento OpenCV Robusto ---------- */
+function setDebug(msg){
+  $("debugInfo").textContent = "Diagnostica: " + msg;
+}
+
+/* ---------- Caricamento OpenCV ---------- */
 let cvSourceIndex=0;
-function markCvReady(){ if(cvReady)return; cvReady=true; $("cvState").textContent="Pronto"; }
+function markCvReady(){ if(cvReady)return; cvReady=true; $("cvState").textContent="Pronto"; setDebug("Motore visivo pronto."); }
 function cvIsUsable(c){ return !!c && typeof c.Mat==="function"; }
 function loadOpenCV(){
-  if(cvSourceIndex>=CV_SOURCES.length){ $("cvState").textContent="Errore"; return; }
+  if(cvSourceIndex>=CV_SOURCES.length){ $("cvState").textContent="Errore"; setDebug("Impossibile caricare OpenCV."); return; }
   const url=CV_SOURCES[cvSourceIndex];
   const s=document.createElement("script"); s.async=true; s.src=url;
   s.onerror=()=>{ cvSourceIndex++; loadOpenCV(); };
@@ -181,7 +177,7 @@ function loadOpenCV(){
 }
 loadOpenCV();
 
-/* ---------- Avvio e Reset ---------- */
+/* ---------- Avvio ---------- */
 $("startBtn").onclick=async()=>{ $("intro").classList.add("hidden"); $("app").classList.remove("hidden"); resetState(); await startCamera(); };
 $("repeatBtn").onclick=async()=>{ $("result").classList.add("hidden"); resetState(); await startCamera(); };
 
@@ -195,7 +191,7 @@ function resetState(){
   endManual();
   
   $("title").textContent="Fase 1 — Calibrazione Tessera";
-  $("instructions").textContent="Tieni la tessera per i bordi, appoggiata sotto il mento o sulla fronte, dentro il riquadro tratteggiato.";
+  $("instructions").textContent="Inquadra la tessera tenendola sotto il mento. Assicurati che non ci siano ombre forti su di essa.";
   $("cardGuide").classList.remove("hidden"); $("faceGuide").classList.add("hidden");
   $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
   $("liveHUD").classList.add("hidden");
@@ -216,9 +212,9 @@ async function startCamera(){
     cancelAnimationFrame(rafId);
     rafId=requestAnimationFrame(loop);
     initializeFaceTracking();
-    setStatus("Fotocamera attiva. Posiziona la tessera tenendola per i bordi.");
+    setStatus("Fotocamera attiva. Metti la tessera nel riquadro azzurro.");
   }catch(e){
-    setStatus("Fotocamera non disponibile o permessi negati.","bad");
+    setStatus("Fotocamera non disponibile. Controlla i permessi del browser.","bad");
   }
 }
 
@@ -245,7 +241,7 @@ function initializeFaceTracking(){
   }
 }
 
-/* ---------- Loop Principale Senza Blocchi ---------- */
+/* ---------- Loop Principale ---------- */
 function loop(now){
   if(!running) return;
   try{
@@ -269,8 +265,8 @@ function loop(now){
   if(running) rafId=requestAnimationFrame(loop);
 }
 
-/* ---------- Rilevamento Tessera con Gestione Memoria Ottimizzata ---------- */
-function detectCardOptimized(){
+/* ---------- Algoritmo di Rilevamento Flessibile e Permissivo ---------- */
+function detectCardFlexible(){
   const W=video.videoWidth, H=video.videoHeight;
   if(!W||!H||!cvReady) return null;
 
@@ -288,24 +284,30 @@ function detectCardOptimized(){
 
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     cv.GaussianBlur(gray, blur, new cv.Size(5,5), 0);
-    cv.adaptiveThreshold(blur, thresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 2);
+    
+    // Algoritmo Canny per rilevare i bordi ad alto contrasto della tessera
+    cv.Canny(blur, thresh, 30, 120);
     cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-    const targetRatio = CARD_W_MM / CARD_H_MM;
+    const targetRatio = CARD_W_MM / CARD_H_MM; // ~1.58
     let maxScore = 0;
+    let candidatesFound = 0;
 
     for(let i=0; i<contours.size(); i++){
       let cnt = contours.get(i);
       let area = cv.contourArea(cnt);
       
-      if(area > rw*rh*0.01 && area < rw*rh*0.6){
+      // Accetta oggetti tra il 1.5% e il 40% dell'area dell'inquadratura
+      if(area > rw*rh*0.015 && area < rw*rh*0.4){
         let rect = cv.minAreaRect(cnt);
         let w = rect.size.width, h = rect.size.height;
         let longS = Math.max(w,h), shortS = Math.min(w,h);
         let ratio = longS / Math.max(1, shortS);
 
-        if(ratio >= 1.2 && ratio <= 2.2){
-          let score = area * (1 - Math.abs(ratio - targetRatio) * 0.4);
+        // Tollera deformazioni o mani sui bordi (rapporto tra 1.1 e 2.3)
+        if(ratio >= 1.1 && ratio <= 2.3){
+          candidatesFound++;
+          let score = area * (1 - Math.abs(ratio - targetRatio) * 0.3);
           if(score > maxScore){
             maxScore = score;
             let pts = cv.BoxPoints(rect);
@@ -315,9 +317,17 @@ function detectCardOptimized(){
           }
         }
       }
-      cnt.delete(); // Previene memory leak
+      cnt.delete();
     }
+    
+    if(candidatesFound === 0){
+      setDebug("Nessuna forma rettangolare trovata. Avvicina la tessera o aumenta la luce.");
+    } else {
+      setDebug("Forme individuate: " + candidatesFound + ". Tessera identificata.");
+    }
+
   }catch(e){
+    setDebug("Errore scansione: " + e.message);
   }finally{
     if(src) src.delete(); if(gray) gray.delete(); if(blur) blur.delete(); 
     if(thresh) thresh.delete(); if(contours) contours.delete(); if(hierarchy) hierarchy.delete();
@@ -326,21 +336,21 @@ function detectCardOptimized(){
 }
 
 function calibrationFrameAsync(now){
-  if(!cvReady){ setStatus("Inizializzazione motore visivo..."); return; }
+  if(!cvReady){ setStatus("Caricamento moduli visivi..."); return; }
 
   isProcessingCard = true;
   setTimeout(() => {
-    const card = detectCardOptimized();
+    const card = detectCardFlexible();
     isProcessingCard = false;
 
     if(!card){
-      $("cardState").textContent="Cerca...";
-      setStatus("Tessera non ancora rilevata. Tienila per i bordi sotto il mento. Se non va, premi «Calibra a mano».","bad");
+      $("cardState").textContent="In cerca...";
+      setStatus("Tessera non ancora rilevata. Tienila ben visibile sotto il mento o premi «Calibra a mano».","bad");
       return;
     }
 
     overlay.card = card; overlay.cardT = now;
-    $("cardState").textContent="Trovata";
+    $("cardState").textContent="Rilevata!";
 
     cardFrames++;
     cardSamples.push((card.longSide/CARD_W_MM + card.shortSide/CARD_H_MM)/2);
@@ -348,7 +358,7 @@ function calibrationFrameAsync(now){
     const n = Math.min(cardFrames, CARD_STABLE_REQUIRED);
     $("cardCount").textContent = n;
     $("cardProgress").style.width = (n/CARD_STABLE_REQUIRED*100) + "%";
-    setStatus("Tessera Rilevata! Resta fermo qualche istante...");
+    setStatus("Tessera individuata! Resta fermo...","ok");
 
     if(cardFrames >= CARD_STABLE_REQUIRED){
       cardSamples.sort((a,b)=>a-b);
@@ -362,11 +372,11 @@ function enterFacePhase(){
   phase = 1;
   overlay.card = null;
   $("title").textContent = "Fase 2 — Tracciamento Iride Live";
-  $("instructions").textContent = "Ottimo! Ora puoi abbassare la tessera. Resta fermo e guarda dritto nella fotocamera.";
+  $("instructions").textContent = "Perfetto! Ora puoi abbassare la tessera. Guarda fisso verso la fotocamera.";
   $("cardGuide").classList.add("hidden"); $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden"); $("measureArea").classList.remove("hidden");
   $("liveHUD").classList.remove("hidden");
-  setStatus("Analisi iride e distanza pupillare live in corso...","ok");
+  setStatus("Analisi iride in corso...","ok");
 }
 
 /* ---------- Calibrazione Manuale ---------- */
@@ -408,7 +418,7 @@ $("manualBtn").onclick = ()=>{
   $("manualBtn").classList.add("hidden"); $("manualControls").classList.remove("hidden");
   $("cardState").textContent = "Manuale";
   renderFreeze();
-  setStatus("Immagine bloccata. Tocca i due angoli del lato lungo della tessera (85,6 mm).");
+  setStatus("Immagine bloccata. Tocca i due angoli del LATO LUNGO della tessera (85.6 mm).");
 };
 
 freeze.addEventListener("click", ev=>{
@@ -422,7 +432,7 @@ freeze.addEventListener("click", ev=>{
     const px = Math.hypot(manual.pts[0].x - manual.pts[1].x, manual.pts[0].y - manual.pts[1].y);
     manual.pxPerMm = px / CARD_W_MM;
     $("manualConfirm").disabled = false;
-    setStatus("Lato segnato! Premi CONFERMA LATO.","ok");
+    setStatus("Lato segnato! Premi CONFERMA LATO per proseguire.","ok");
   }
 });
 
@@ -439,7 +449,7 @@ $("manualConfirm").onclick = ()=>{
   enterFacePhase();
 };
 
-/* ---------- Face Tracking ---------- */
+/* ---------- Tracciamento Iride ---------- */
 function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
 function avg(pts){ return {x: pts.reduce((s,p)=>s+p.x,0)/pts.length, y: pts.reduce((s,p)=>s+p.y,0)/pts.length}; }
 
@@ -450,7 +460,7 @@ function faceFrameLive(now){
 
   if(!result.faceLandmarks || !result.faceLandmarks.length){
     overlay.lm = null; $("poseState").textContent = "Assente";
-    setStatus("Volto non rilevato. Guarda verso la fotocamera.","bad");
+    setStatus("Volto non rilevato. Guarda la fotocamera.","bad");
     return;
   }
 
@@ -478,7 +488,7 @@ function faceFrameLive(now){
     const progress = Math.min(stableFrames, MEASURE_REQUIRED);
     $("measureCount").textContent = progress;
     $("measureProgress").style.width = (progress/MEASURE_REQUIRED*100) + "%";
-    setStatus("Misurazione LIVE in corso. Rimani fermo...");
+    setStatus("Tracciamento pupille in corso. Rimani fermo...");
 
     if(stableFrames >= MEASURE_REQUIRED && !finished){
       finishMeasurement();
