@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Misurazione Centratura Occhiali Live</title>
+<!-- Caricamento diretto librerie MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
@@ -27,7 +30,6 @@ video{transform:scaleX(-1)}
 #overlay{transform:scaleX(-1);pointer-events:none;z-index:2}
 #freeze{transform:none;z-index:10;cursor:crosshair;touch-action:none}
 .guide{position:absolute;inset:0;pointer-events:none;z-index:3}
-/* Guida visiva per la carta aggiunta */
 .cardGuide{position:absolute;width:42%;aspect-ratio:85.6/53.98;left:50%;bottom:12%;transform:translateX(-50%);border:3px dashed #58a6ff;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,0.35)}
 .cardGuideText{position:absolute;bottom:-24px;left:0;width:100%;text-align:center;font-size:12px;color:#58a6ff;font-weight:bold}
 .faceGuide{position:absolute;height:70%;aspect-ratio:.75;left:50%;top:50%;transform:translate(-50%,-50%);border:3px dashed #238636;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.5)}
@@ -57,8 +59,8 @@ video{transform:scaleX(-1)}
 <b>💡 ISTRUZIONI DI PRECISIONE</b>
 <ul>
   <li>Prendi una <b>carta plastificata standard</b> (Carta di Credito o Codice Fiscale).</li>
-  <li>Mettila all'interno del riquadro blu sotto il mento e clicca su "Scatta Foto per Calibrare".</li>
-  <li>Seleziona i 2 angoli estremi del lato lungo della carta per la calibrazione perfetta.</li>
+  <li>Posizionala all'interno della guida blu sotto il mento.</li>
+  <li>Clicca su "Scatta Foto e Calibra Tessera" per selezionare i due angoli della carta.</li>
 </ul>
 </div>
 <button id="startBtn">INIZIA MISURAZIONE</button>
@@ -97,208 +99,3 @@ video{transform:scaleX(-1)}
 </div>
 
 <div id="measureArea" class="hidden">
-  <b>Progresso Tracciamento Iride: <span id="measureCount">0</span>/25</b>
-  <div class="progress"><div id="measureProgress"></div></div>
-</div>
-
-<div id="result" class="result hidden">
-  <div class="small">Distanza Pupillare (PD) Totale</div>
-  <div class="big"><span id="pdTotal">—</span> mm</div>
-  <div class="metrics">
-    <div class="metric">PD OD (Destra)<b id="pdOD">—</b></div>
-    <div class="metric">PD OS (Sinistra)<b id="pdOS">—</b></div>
-    <div class="metric">Qualità Misura<b id="quality">Eccellente</b></div>
-  </div>
-  <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
-</div>
-</section>
-
-</div>
-
-<script>
-"use strict";
-const CARD_W_MM = 85.60;
-const MEASURE_REQUIRED = 25;
-
-const $=id=>document.getElementById(id),
-      video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d"), freeze=$("freeze"), videoBox=$("videoBox");
-
-let stream=null, running=false, rafId=0, phase=0,
-    faceLandmarker=null,
-    pxPerMm=null,
-    faceSamples=[], stableFrames=0, finished=false,
-    livePD=0, smoothPD=0, overlayLM=null,
-    manual={active:false, pts:[]};
-
-function setStatus(msg,type=""){
-  const el=$("status"); el.className="status"+(type?" "+type:""); el.textContent=msg;
-}
-
-$("startBtn").onclick=async()=>{ $("intro").classList.add("hidden"); $("app").classList.remove("hidden"); resetState(); await startCamera(); };
-$("repeatBtn").onclick=async()=>{ $("result").classList.add("hidden"); resetState(); await startCamera(); };
-
-function resetState(){
-  running=false; cancelAnimationFrame(rafId);
-  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
-  phase=0; pxPerMm=null;
-  faceSamples=[]; stableFrames=0; finished=false;
-  livePD=0; smoothPD=0; overlayLM=null;
-  endManual();
-  
-  $("title").textContent="Fase 1 — Calibrazione Carta";
-  $("instructions").textContent="Inquadra la carta nel rettangolo blu sotto il mento e scatta la foto.";
-  $("cardGuide").classList.remove("hidden");
-  $("faceGuide").classList.add("hidden");
-  $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
-  $("liveHUD").classList.add("hidden");
-  $("snapBtn").classList.remove("hidden");
-  $("measureCount").textContent="0"; $("measureProgress").style.width="0%";
-  $("calState").textContent="Da fare"; $("poseState").textContent="Assente";
-  setStatus("Inizializzazione fotocamera...");
-}
-
-async function startCamera(){
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}},audio:false});
-    video.srcObject=stream;
-    await video.play();
-    videoBox.style.aspectRatio=video.videoWidth+" / "+video.videoHeight;
-    running=true;
-    cancelAnimationFrame(rafId);
-    rafId=requestAnimationFrame(loop);
-    await initializeFaceTracking();
-    setStatus("Fotocamera attiva. Metti la carta nella guida blu e scatta la foto.");
-  }catch(e){
-    setStatus("Impossibile accedere alla fotocamera. Controlla i permessi.","bad");
-  }
-}
-
-/* CARICAMENTO MEDIAPIPE CON RIFINIMENTO IRIDE ATTIVATO */
-async function initializeFaceTracking(){
-  $("engineState").textContent="Caricamento";
-  try{
-    const m = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/+esm");
-    const vision = await m.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm");
-    faceLandmarker = await m.FaceLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-        delegate: "CPU"
-      },
-      runningMode: "VIDEO",
-      numFaces: 1,
-      minFaceDetectionConfidence: 0.5,
-      minFacePresenceConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-      outputFaceBlendshapes: false,
-      outputFacialTransformationMatrixes: false
-    });
-    $("engineState").textContent="Pronto";
-  }catch(e){
-    $("engineState").textContent="Errore";
-    setStatus("Errore nel caricamento del tracciatore oculare. Ricarica la pagina.","bad");
-  }
-}
-
-function loop(now){
-  if(!running) return;
-  try{
-    if(video.readyState>=2 && video.videoWidth>0){
-      const w=video.videoWidth, h=video.videoHeight;
-      if(canvas.width!==w||canvas.height!==h){canvas.width=w; canvas.height=h;}
-      ctx.clearRect(0,0,w,h);
-
-      if(phase===1){
-        faceFrameLive(now);
-        if(overlayLM) drawFaceLive(overlayLM);
-      }
-    }
-  }catch(e){}
-  if(running) rafId=requestAnimationFrame(loop);
-}
-
-/* Modalità Calibrazione Fotografica */
-$("snapBtn").onclick = ()=>{
-  const W = video.videoWidth, H = video.videoHeight;
-  if(!running || !W || !H) return;
-
-  freeze.width = W; freeze.height = H;
-  const fCtx = freeze.getContext("2d");
-  
-  fCtx.save();
-  fCtx.scale(-1, 1);
-  fCtx.drawImage(video, -W, 0, W, H);
-  fCtx.restore();
-
-  manual = {active:true, pts:[]};
-  freeze.classList.remove("hidden");
-  $("cardGuide").classList.add("hidden");
-  $("snapBtn").classList.add("hidden");
-  $("manualControls").classList.remove("hidden");
-  
-  renderFreeze();
-  setStatus("FOTO BLOCCATA: Tocca con il dito i DUE ANGOLI ESTREMI (Lato Lungo) della carta.");
-};
-
-function renderFreeze(){
-  const fCtx = freeze.getContext("2d"), W = freeze.width, H = freeze.height;
-  fCtx.save();
-  fCtx.scale(-1, 1);
-  fCtx.drawImage(video, -W, 0, W, H);
-  fCtx.restore();
-
-  if(manual.pts.length === 2){
-    fCtx.strokeStyle = "#3fb950"; fCtx.lineWidth = 4;
-    fCtx.beginPath();
-    fCtx.moveTo(manual.pts[0].x, manual.pts[0].y);
-    fCtx.lineTo(manual.pts[1].x, manual.pts[1].y);
-    fCtx.stroke();
-  }
-
-  manual.pts.forEach((p, idx)=>{
-    fCtx.fillStyle = idx === 0 ? "#58a6ff" : "#3fb950";
-    fCtx.beginPath(); fCtx.arc(p.x, p.y, 9, 0, Math.PI*2); fCtx.fill();
-    fCtx.strokeStyle = "#ffffff"; fCtx.lineWidth = 2; fCtx.stroke();
-  });
-}
-
-freeze.addEventListener("pointerdown", ev=>{
-  if(!manual.active || manual.pts.length >= 2) return;
-  const r = freeze.getBoundingClientRect();
-  const x = (ev.clientX - r.left) * (freeze.width / r.width);
-  const y = (ev.clientY - r.top) * (freeze.height / r.height);
-  manual.pts.push({x, y});
-  renderFreeze();
-
-  if(manual.pts.length === 2){
-    const px = Math.hypot(manual.pts[0].x - manual.pts[1].x, manual.pts[0].y - manual.pts[1].y);
-    pxPerMm = px / CARD_W_MM;
-    $("manualConfirm").disabled = false;
-    setStatus("Angoli selezionati! Clicca su 'CONFERMA LUNGHEZZA CARTA'.","ok");
-  }
-});
-
-$("manualRetry").onclick = ()=>{
-  manual.pts = [];
-  pxPerMm = null;
-  $("manualConfirm").disabled = true;
-  renderFreeze();
-  setStatus("Tocca i due angoli del lato lungo della carta.");
-};
-
-$("manualConfirm").onclick = ()=>{
-  if(!manual.active || !pxPerMm) return;
-  endManual();
-  enterFacePhase();
-};
-
-function endManual(){
-  manual = {active:false, pts:[]};
-  freeze.classList.add("hidden");
-  $("manualControls").classList.add("hidden");
-  $("snapBtn").classList.remove("hidden");
-  $("manualConfirm").disabled = true;
-}
-
-function enterFacePhase(){
-  phase = 1;
-  $("title").textContent = "Fase 2 — Tracciamento
