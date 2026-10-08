@@ -28,6 +28,9 @@ video{transform:scaleX(-1)}
 #freeze{transform:none;z-index:10;cursor:crosshair;touch-action:none}
 .guide{position:absolute;inset:0;pointer-events:none;z-index:3}
 .faceGuide{position:absolute;height:70%;aspect-ratio:.75;left:50%;top:50%;transform:translate(-50%,-50%);border:3px dashed #238636;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.5)}
+.cardGuide{position:absolute;width:64%;aspect-ratio:85.6/53.98;left:50%;top:68%;transform:translate(-50%,-50%);border:3px dashed #58a6ff;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.16);z-index:3}
+.cardGuide:before{content:"";position:absolute;inset:9%;border:1px solid rgba(255,255,255,.45);border-radius:8px}
+.cardGuideLabel{position:absolute;left:50%;top:-34px;transform:translateX(-50%);white-space:nowrap;background:rgba(13,17,23,.9);border:1px solid #58a6ff;color:#58a6ff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700}
 .status{padding:13px 15px;border-radius:12px;background:#21262d;font-weight:600;margin:12px 0;overflow-wrap:anywhere;border:1px solid #30363d;text-align:center}
 .ok{background:rgba(46,160,67,0.15);color:#3fb950;border-color:#238636}
 .bad{background:rgba(248,81,73,0.15);color:#f85149;border-color:#da3633}
@@ -54,7 +57,7 @@ video{transform:scaleX(-1)}
 <b>💡 ISTRUZIONI DI PRECISIONE</b>
 <ul>
   <li>Prendi una <b>carta plastificata standard</b> (Carta di Credito o Codice Fiscale).</li>
-  <li>Nella prima fase ti verrà chiesto di <b>scattare una foto</b> tenendo la carta sotto il mento per selezionare i 2 angoli con massima precisione.</li>
+  <li>Nella prima fase tieni la carta <b>davanti al viso, vicino agli occhiali</b>, seguendo il contorno blu mostrato sullo schermo.</li>
   <li>Nella seconda fase dovrai semplicemente guardare la fotocamera.</li>
 </ul>
 </div>
@@ -73,7 +76,8 @@ video{transform:scaleX(-1)}
     <div>Distanza Pupillare Live</div>
     <b id="livePDValue">--.- mm</b>
   </div>
-  <div id="faceGuide" class="guide hidden"><div class="faceGuide"></div></div>
+  <div id="cardGuide" class="guide"><div class="cardGuide"><div class="cardGuideLabel">POSIZIONA QUI LA CARTA</div></div></div>
+   <div id="faceGuide" class="guide hidden"><div class="faceGuide"></div></div>
 </div>
 
 <div id="status" class="status">Inizializzazione fotocamera...</div>
@@ -143,7 +147,7 @@ function resetState(){
   
   $("title").textContent="Fase 1 — Calibrazione Carta";
   $("instructions").textContent="Posiziona la carta sotto il mento e clicca 'Scatta Foto'.";
-  $("faceGuide").classList.add("hidden");
+  $("faceGuide").classList.add("hidden"); $("cardGuide").classList.remove("hidden");
   $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
   $("liveHUD").classList.add("hidden");
   $("snapBtn").classList.remove("hidden");
@@ -296,8 +300,8 @@ function endManual(){
 function enterFacePhase(){
   phase = 1;
   $("title").textContent = "Fase 2 — Tracciamento Iride Live";
-  $("instructions").textContent = "Calibrazione completata. Ora metti via la carta e guarda fisso al centro dello schermo.";
-  $("faceGuide").classList.remove("hidden");
+  $("instructions").textContent = "Calibrazione completata. Togli la carta, resta fermo con gli occhiali e guarda fisso al centro dello schermo.";
+  $("faceGuide").classList.remove("hidden"); $("cardGuide").classList.add("hidden");
   $("calArea").classList.add("hidden");
   $("measureArea").classList.remove("hidden");
   $("liveHUD").classList.remove("hidden");
@@ -326,11 +330,14 @@ function faceFrameLive(now){
   }
 
   const lm = result.faceLandmarks[0];
-  
-  // Verifica se MediaPipe sta fornendo i punti dell'iride
-  if(!lm[468] || !lm[473]){
+
+  // 5 punti per ciascuna iride: la media è più stabile del singolo punto centrale.
+  const irisLeftIdx = [468,469,470,471,472];
+  const irisRightIdx = [473,474,475,476,477];
+
+  if(irisLeftIdx.some(i=>!lm[i]) || irisRightIdx.some(i=>!lm[i])){
     $("poseState").textContent = "Incompleto";
-    setStatus("Elaborazione occhi in corso... Resta fermo.","bad");
+    setStatus("Elaborazione degli occhi in corso... Resta fermo.","bad");
     return;
   }
 
@@ -339,12 +346,24 @@ function faceFrameLive(now){
 
   const W = video.videoWidth, H = video.videoHeight;
   const p = i => ({x: lm[i].x*W, y: lm[i].y*H});
+  const irisL = avg(irisLeftIdx.map(p));
+  const irisR = avg(irisRightIdx.map(p));
 
-  // Punti iride MediaPipe (468: centro sinistro, 473: centro destro)
-  const irisL = p(468);
-  const irisR = p(473);
-  
-  livePD = dist(irisL, irisR) / pxPerMm;
+  // Controlli geometrici per evitare misure palesemente errate.
+  const eyeSpanPx = dist(irisL, irisR);
+  const faceTop = p(10), faceBottom = p(152), faceLeft = p(234), faceRight = p(454);
+  const faceW = dist(faceLeft, faceRight);
+  const faceH = dist(faceTop, faceBottom);
+  const eyeTilt = Math.abs(Math.atan2(irisR.y-irisL.y, irisR.x-irisL.x) * 180 / Math.PI);
+
+  if(faceW < W*0.12 || faceH < H*0.18 || eyeSpanPx < W*0.08 || eyeSpanPx > W*0.55 || eyeTilt > 12){
+    $("poseState").textContent = "Posizione";
+    setStatus("Tieni il viso dritto, centrato e guarda la fotocamera.","bad");
+    stableFrames = Math.max(0, stableFrames-1);
+    return;
+  }
+
+  livePD = eyeSpanPx / pxPerMm;
 
   if(livePD >= 45 && livePD <= 80){
     smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
@@ -367,6 +386,7 @@ function faceFrameLive(now){
       finishMeasurement();
     }
   } else {
+    stableFrames = Math.max(0, stableFrames-1);
     setStatus("Avvicinati o allontanati leggermente per stabilizzare la misura.","bad");
   }
 }
@@ -374,14 +394,67 @@ function faceFrameLive(now){
 function drawFaceLive(lm){
   const W = video.videoWidth, H = video.videoHeight;
   const p = i => ({x: lm[i].x*W, y: lm[i].y*H});
-  const irisL = p(468);
-  const irisR = p(473);
 
-  [irisL, irisR].forEach(pt=>{
-    ctx.strokeStyle = "#3fb950"; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(pt.x, pt.y, 6, 0, Math.PI*2); ctx.stroke();
-    ctx.fillStyle = "#3fb950"; ctx.beginPath(); ctx.arc(pt.x, pt.y, 2, 0, Math.PI*2); ctx.fill();
+  // Contorno del viso: punti distribuiti su fronte, guance, mandibola e mento.
+  const faceOutline = [
+    10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,
+    400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,
+    103,67,109,10
+  ];
+
+  // Occhi: molti punti per rendere visibile il tracking.
+  const eyeLeft = [33,133,160,159,158,157,173,246,161,163,144];
+  const eyeRight = [362,263,387,386,385,384,398,466,388,390,373];
+  const irisLeft = [468,469,470,471,472];
+  const irisRight = [473,474,475,476,477];
+
+  ctx.save();
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(88,166,255,.75)";
+  ctx.beginPath();
+  faceOutline.forEach((idx,n)=>{
+    const q=p(idx);
+    if(n===0) ctx.moveTo(q.x,q.y); else ctx.lineTo(q.x,q.y);
   });
+  ctx.stroke();
+
+  // Pallini su tutto il contorno del viso e sugli occhi.
+  ctx.fillStyle = "rgba(88,166,255,.78)";
+  [...faceOutline,...eyeLeft,...eyeRight].forEach(idx=>{
+    const q=p(idx);
+    ctx.beginPath();
+    ctx.arc(q.x,q.y,2.5,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  // Tutti i punti dell'iride sono evidenziati: vengono usati nel calcolo.
+  ctx.fillStyle = "#ffd33d";
+  [...irisLeft,...irisRight].forEach(idx=>{
+    const q=p(idx);
+    ctx.beginPath();
+    ctx.arc(q.x,q.y,4,0,Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle="#fff";
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+  });
+
+  // Centro geometrico delle due iridi, usato per il calcolo PD.
+  const irisL=avg(irisLeft.map(p)), irisR=avg(irisRight.map(p));
+  [irisL,irisR].forEach(pt=>{
+    ctx.strokeStyle="#3fb950";
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.arc(pt.x,pt.y,8,0,Math.PI*2);
+    ctx.stroke();
+    ctx.fillStyle="#3fb950";
+    ctx.beginPath();
+    ctx.arc(pt.x,pt.y,3,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  ctx.restore();
 }
 
 function finishMeasurement(){
