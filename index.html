@@ -2,403 +2,140 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Misurazione Centratura Occhiali Live</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Centratura occhiali — misurazione</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-.wrap{max-width:960px;margin:auto;padding:16px}
-.card{background:#161b22;border:1px solid #30363d;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
-h1{font-size:22px;margin:0 0 12px;color:#fff}
-h2{font-size:18px;margin:0 0 10px;color:#58a6ff}
-p, ul{line-height:1.5;color:#8b949e;margin-top:6px;margin-bottom:12px}
-ul{padding-left:20px}
-li{margin-bottom:6px}
-.warning{background:rgba(210,153,34,0.15);border:1px solid #d29922;border-radius:14px;padding:16px;margin:14px 0;color:#e3b341}
-button{border:0;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:700;background:#238636;color:#fff;cursor:pointer;margin:4px 0;transition:all .2s;width:100%}
-button:hover{background:#2ea043}
-button:disabled{opacity:.3;cursor:not-allowed}
-.secondary{background:#21262d;color:#c9d1d9;border:1px solid #30363d}
-.secondary:hover{background:#30363d}
-.hidden{display:none!important}
-.videoBox{position:relative;width:100%;max-width:760px;margin:15px auto;background:#000;border-radius:16px;overflow:hidden;aspect-ratio:4/3;border:2px solid #30363d}
-video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-video{transform:scaleX(-1)}
-#overlay{transform:scaleX(-1);pointer-events:none;z-index:2}
-#freeze{transform:none;z-index:10;cursor:crosshair;touch-action:none}
-.guide{position:absolute;inset:0;pointer-events:none;z-index:3}
-.faceGuide{position:absolute;height:70%;aspect-ratio:.75;left:50%;top:50%;transform:translate(-50%,-50%);border:3px dashed #238636;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.5)}
-.status{padding:13px 15px;border-radius:12px;background:#21262d;font-weight:600;margin:12px 0;overflow-wrap:anywhere;border:1px solid #30363d;text-align:center}
-.ok{background:rgba(46,160,67,0.15);color:#3fb950;border-color:#238636}
-.bad{background:rgba(248,81,73,0.15);color:#f85149;border-color:#da3633}
-.progress{height:10px;background:#21262d;border-radius:20px;overflow:hidden;margin:10px 0}
-.progress div{height:100%;width:0;background:#238636;transition:width .12s linear}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
-.metric{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:12px;text-align:center}
-.metric b{display:block;font-size:18px;margin-top:4px;color:#fff}
-.small{font-size:12px;color:#8b949e}
-.result{background:rgba(56,139,253,0.1);border:1px solid #1f6beb;border-radius:15px;padding:16px;margin-top:14px;text-align:center}
-.big{font-size:38px;font-weight:800;color:#58a6ff}
-.liveOverlay{position:absolute;top:12px;left:12px;background:rgba(13,17,23,0.85);padding:10px 14px;border-radius:10px;border:1px solid #30363d;backdrop-filter:blur(4px);z-index:4}
-.liveOverlay div{font-size:12px;color:#8b949e}
-.liveOverlay b{font-size:16px;color:#3fb950}
-@media(max-width:600px){.wrap{padding:10px}.card{padding:15px}.metrics{grid-template-columns:1fr}}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6f8;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.wrap{max-width:900px;margin:auto;padding:14px}.card{background:#fff;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 7px 26px #0000000d}
+h1{font-size:24px;margin:0 0 10px}h2{font-size:20px;margin:0 0 8px}p{line-height:1.45}
+.warning{background:#fff5d9;border:1px solid #e4c35a;border-radius:14px;padding:14px}
+button{border:0;border-radius:12px;padding:13px 17px;font-size:15px;font-weight:750;background:#111;color:#fff;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#e8edf2;color:#111}.hidden{display:none!important}
+.videoBox{position:relative;width:100%;max-width:760px;margin:14px auto;background:#111;border-radius:16px;overflow:hidden;aspect-ratio:4/3}
+#video,#liveCanvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#photoCanvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:8;display:block}
+.guide{position:absolute;inset:0;z-index:10;pointer-events:none}
+.cardGuide{position:absolute;width:80%;aspect-ratio:85.6/53.98;left:10%;top:30%;border:3px dashed #fff;border-radius:9px;box-shadow:0 0 0 9999px #0002}
+.faceGuide{position:absolute;width:46%;height:60%;left:27%;top:20%;border:3px dashed #fff;border-radius:45%;box-shadow:0 0 0 9999px #0002}
+.status{padding:12px 14px;border-radius:12px;background:#eef2f6;font-weight:650;margin:11px 0;overflow-wrap:anywhere}.ok{background:#e5f7eb;color:#176b37}.bad{background:#fde9e9;color:#982626}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}.metric{background:#f2f4f6;border-radius:12px;padding:11px;text-align:center}.metric b{display:block;font-size:20px;margin-top:4px}
+.progress{height:10px;background:#e8ecf1;border-radius:20px;overflow:hidden;margin:8px 0}.progress div{height:100%;width:0;background:#111;transition:width .1s}
+.controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}.small{font-size:12px;color:#68727d}
+.result{background:#eef7ff;border:1px solid #b9dafa;border-radius:15px;padding:15px;margin-top:13px}.big{font-size:34px;font-weight:800}
+.pointHint{font-weight:700;margin:10px 0}.pointList{font-size:13px;color:#56616d}
+@media(max-width:600px){.wrap{padding:9px}.card{padding:14px}.metrics{grid-template-columns:1fr}h1{font-size:21px}}
 </style>
+<script>
+window.loadOpenCV=()=>new Promise((resolve,reject)=>{
+ if(window.cv&&typeof cv.Mat==='function')return resolve();
+ if(window.__cvPromise)return window.__cvPromise.then(resolve,reject);
+ window.__cvPromise=new Promise((res,rej)=>{
+  const s=document.createElement('script');s.src='https://docs.opencv.org/4.x/opencv.js';s.async=true;
+  s.onload=()=>{const wait=()=>window.cv&&typeof cv.Mat==='function'?res():setTimeout(wait,100);wait()};
+  s.onerror=()=>rej(new Error('OpenCV non è stato caricato.'));document.head.appendChild(s);
+ });window.__cvPromise.then(resolve,reject)
+});
+</script>
+<script type="module">
+window.mpReady=(async()=>{try{const m=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/+esm');window.FaceLandmarker=m.FaceLandmarker;window.FilesetResolver=m.FilesetResolver;return true}catch(e){window.mpLoadError=e;return false}})();
+</script>
 </head>
-<body>
-<div class="wrap">
-
+<body><div class="wrap">
 <section id="intro" class="card">
-<h1>Misurazione Centratura Occhiali Live</h1>
+<h1>Misurazione della centratura</h1>
 <div class="warning">
-<b>💡 ISTRUZIONI DI PRECISIONE</b>
-<ul>
-  <li>Prendi una <b>carta plastificata standard</b> (Carta di Credito o Codice Fiscale).</li>
-  <li>Nella prima fase ti verrà chiesto di <b>scattare una foto</b> tenendo la carta sotto il mento per selezionare i 2 angoli con massima precisione.</li>
-  <li>Nella seconda fase dovrai semplicemente guardare la fotocamera.</li>
-</ul>
+<b>IMPORTANTE</b>
+<p>Indossa l'occhiale nella posizione normale. Prima viene usata una tessera sanitaria/carta d'identità come riferimento dimensionale: tienila aderente al davanti della montatura e quasi completamente visibile.</p>
+<p><b>Quando la carta è stabile, la foto viene congelata.</b> I punti vengono messi sulla stessa foto congelata. Cliccare sui punti non riattiva la fotocamera e non scatta una nuova foto.</p>
+<p>Dopo la conferma della carta, rimuovi lentamente la tessera senza muovere la testa. Il volto viene poi rilevato e anche la foto del volto può essere congelata prima del posizionamento manuale dei punti.</p>
+<p>La procedura fornisce una stima geometrica in millimetri; webcam, prospettiva, movimento, posizione della carta e distanza possono introdurre errore. Per la realizzazione delle lenti la misura deve essere verificata da un ottico.</p>
 </div>
-<button id="startBtn">INIZIA MISURAZIONE</button>
+<p><b>Sequenza:</b> carta → foto congelata → 4 punti carta → calibrazione mm → volto → foto congelata → 2 punti pupille → risultato.</p>
+<button id="startBtn">HO LETTO — INIZIA</button>
 </section>
 
 <section id="app" class="card hidden">
-<h2 id="title">Fase 1 — Calibrazione Carta</h2>
-<p id="instructions">Posiziona la carta sotto il mento in orizzontale e clicca "Scatta Foto per Calibrare".</p>
+<h2 id="title">Fase 1 — Calibrazione con carta</h2>
+<p id="instructions">Tieni la carta aderente al davanti della montatura e mostra quasi tutti i bordi.</p>
+<div class="videoBox">
+<video id="video" autoplay muted playsinline></video>
+<canvas id="liveCanvas"></canvas>
+<canvas id="photoCanvas" class="hidden"></canvas>
+<div id="cardGuide" class="guide"><div class="cardGuide"></div></div>
+<div id="faceGuide" class="guide hidden"><div class="faceGuide"></div></div>
+</div>
+<div id="status" class="status">Avvio fotocamera…</div>
+<div class="metrics"><div class="metric">Carta<b id="cardState">—</b></div><div class="metric">Volto<b id="faceState">—</b></div><div class="metric">Motore<b id="engineState">—</b></div></div>
 
-<div class="videoBox" id="videoBox">
-  <video id="video" autoplay muted playsinline></video>
-  <canvas id="overlay"></canvas>
-  <canvas id="freeze" class="hidden"></canvas>
-  <div id="liveHUD" class="liveOverlay hidden">
-    <div>Distanza Pupillare Live</div>
-    <b id="livePDValue">--.- mm</b>
-  </div>
-  <div id="faceGuide" class="guide hidden"><div class="faceGuide"></div></div>
+<div id="cardArea">
+<b>Stabilità carta: <span id="cardCount">0</span>/12</b><div class="progress"><div id="cardProgress"></div></div>
+<div class="controls"><button id="captureCardBtn" class="hidden">BLOCCA FOTO E METTI I PUNTI</button></div>
 </div>
 
-<div id="status" class="status">Inizializzazione fotocamera...</div>
-
-<div class="metrics">
-  <div class="metric">Motore Iride<b id="engineState">Caricamento...</b></div>
-  <div class="metric">Volto<b id="poseState">Assente</b></div>
-  <div class="metric">Calibrazione<b id="calState">Da fare</b></div>
+<div id="cardPointsArea" class="hidden">
+<div class="pointHint">Foto congelata. Clicca i 4 angoli della carta nell'ordine indicato.</div>
+<div class="pointList">1 alto-sinistra → 2 alto-destra → 3 basso-destra → 4 basso-sinistra.</div>
+<div id="pointStatus" class="status">Inserisci i 4 punti.</div>
+<div class="controls"><button id="resetCardPoints" class="secondary">RIPETI I PUNTI</button><button id="confirmCard" disabled>CONFERMA CARTA</button></div>
 </div>
 
-<div id="calArea">
-  <button id="snapBtn" style="background:#1f6beb; color:#fff;">📸 SCATTA FOTO E CALIBRA TESSERA</button>
-  <div id="manualControls" class="hidden">
-    <button id="manualConfirm" disabled>CONFERMA LUNGHEZZA CARTA</button>
-    <button id="manualRetry" class="secondary">RIFA' SELEZIONE ANGOLI</button>
-  </div>
+<div id="faceArea" class="hidden">
+<b>Stabilità volto: <span id="faceCount">0</span>/12</b><div class="progress"><div id="faceProgress"></div></div>
+<p class="small">Attendi che il volto sia stabile. Poi la foto viene congelata e puoi correggere manualmente i centri pupillari.</p>
+<div class="controls"><button id="captureFaceBtn" class="hidden">BLOCCA FOTO E METTI I PUNTI PUPILLE</button></div>
 </div>
 
-<div id="measureArea" class="hidden">
-  <b>Progresso Tracciamento Iride: <span id="measureCount">0</span>/25</b>
-  <div class="progress"><div id="measureProgress"></div></div>
+<div id="facePointsArea" class="hidden">
+<div class="pointHint">Foto del volto congelata. Clicca il centro delle due pupille.</div>
+<div class="pointList">Prima pupilla destra, poi pupilla sinistra. I punti automatici possono essere corretti.</div>
+<div id="eyePointStatus" class="status">Inserisci 2 punti.</div>
+<div class="controls"><button id="resetEyePoints" class="secondary">RIPETI I PUNTI</button><button id="confirmEyes" disabled>CALCOLA LA CENTRATURA</button></div>
 </div>
 
-<div id="result" class="result hidden">
-  <div class="small">Distanza Pupillare (PD) Totale</div>
-  <div class="big"><span id="pdTotal">—</span> mm</div>
-  <div class="metrics">
-    <div class="metric">PD OD (Destra)<b id="pdOD">—</b></div>
-    <div class="metric">PD OS (Sinistra)<b id="pdOS">—</b></div>
-    <div class="metric">Qualità Misura<b id="quality">Eccellente</b></div>
-  </div>
-  <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
-</div>
-</section>
-
-</div>
+<div id="result" class="result hidden"><div class="small">PD totale stimata</div><div class="big"><span id="pdTotal">—</span> mm</div>
+<div class="metrics"><div class="metric">PD OD<b id="pdOD">—</b></div><div class="metric">PD OS<b id="pdOS">—</b></div><div class="metric">Qualità<b id="quality">—</b></div></div>
+<p class="small">Il valore deriva dalla scala ricavata dalla carta e dai centri pupillari. È una stima e non sostituisce una verifica professionale.</p>
+<button id="repeatBtn" class="secondary">RIPETI DALL'INIZIO</button></div>
+</section></div>
 
 <script>
-"use strict";
-const CARD_W_MM = 85.60;
-const MEASURE_REQUIRED = 25;
+'use strict';
+const CARD_W=85.60,CARD_H=53.98,STABLE_CARD=12,STABLE_FACE=12,CARD_INTERVAL=450,FACE_INTERVAL=280,MAX_DETECT=480;
+const $=id=>document.getElementById(id);const video=$('video'),liveCanvas=$('liveCanvas'),liveCtx=liveCanvas.getContext('2d');const photoCanvas=$('photoCanvas'),photoCtx=photoCanvas.getContext('2d');
+const frozenCanvas=document.createElement('canvas');const frozenCtx=frozenCanvas.getContext('2d');
+let stream=null,running=false,phase=0,photoMode=false,cvReady=false,faceLandmarker=null,faceBusy=false,lastCard=0,lastFace=0;
+let cardStable=0,lastDetectedCard=null,detectedCard=null,cardPoints=[],eyePoints=[],faceStable=0,faceSampleBuffer=[],calibration={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);const avg=a=>({x:a.reduce((s,p)=>s+p.x,0)/a.length,y:a.reduce((s,p)=>s+p.y,0)/a.length});
+function median(a){if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2}
+function setStatus(t,type=''){const e=$('status');e.className='status'+(type?' '+type:'');e.textContent=t}function setPointStatus(t,type=''){const e=$('pointStatus');e.className='status'+(type?' '+type:'');e.textContent=t}function setEyeStatus(t,type=''){const e=$('eyePointStatus');e.className='status'+(type?' '+type:'');e.textContent=t}
+function timeout(p,ms,msg){let timer;return Promise.race([Promise.resolve(p),new Promise((_,r)=>timer=setTimeout(()=>r(new Error(msg)),ms))]).finally(()=>clearTimeout(timer))}
+$('startBtn').onclick=async()=>{$('intro').classList.add('hidden');$('app').classList.remove('hidden');await resetAll();await startCamera()};$('repeatBtn').onclick=async()=>{await resetAll();await startCamera()};
+async function resetAll(){running=false;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}if(faceLandmarker){try{faceLandmarker.close()}catch(e){}faceLandmarker=null}phase=0;photoMode=false;faceBusy=false;cardStable=0;lastDetectedCard=null;detectedCard=null;cardPoints=[];eyePoints=[];faceStable=0;faceSampleBuffer=[];calibration={};
+$('title').textContent='Fase 1 — Calibrazione con carta';$('instructions').textContent='Tieni la carta aderente al davanti della montatura e mostra quasi tutti i bordi.';$('cardGuide').classList.remove('hidden');$('faceGuide').classList.add('hidden');$('cardArea').classList.remove('hidden');$('cardPointsArea').classList.add('hidden');$('faceArea').classList.add('hidden');$('facePointsArea').classList.add('hidden');$('result').classList.add('hidden');$('captureCardBtn').classList.add('hidden');$('captureFaceBtn').classList.add('hidden');$('confirmCard').disabled=true;$('confirmEyes').disabled=true;$('cardCount').textContent='0';$('cardProgress').style.width='0%';$('faceCount').textContent='0';$('faceProgress').style.width='0%';$('cardState').textContent='—';$('faceState').textContent='—';$('engineState').textContent='Avvio…';$('photoCanvas').classList.add('hidden');$('video').classList.remove('hidden');$('liveCanvas').classList.remove('hidden');setStatus('Avvio fotocamera…')}
+async function startCamera(){try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Fotocamera non disponibile. Usa HTTPS e un browser aggiornato.');stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640,max:960},height:{ideal:480,max:720}},audio:false});video.srcObject=stream;await video.play();running=true;$('engineState').textContent='Pronto';requestAnimationFrame(loop);setStatus('Fotocamera attiva. Inquadra la carta quasi per intero.','ok');loadOpenCV().then(()=>{cvReady=true;$('engineState').textContent='Pronto'}).catch(e=>{$('engineState').textContent='Fallback';console.error(e)})}catch(e){console.error(e);setStatus('Fotocamera non disponibile: '+(e.message||e),'bad')}}
+function loop(now){if(!running)return;if(video.readyState>=2&&!photoMode){const W=video.videoWidth,H=video.videoHeight;if(W&&H){if(liveCanvas.width!==W||liveCanvas.height!==H){liveCanvas.width=W;liveCanvas.height=H}liveCtx.clearRect(0,0,W,H);if(phase===0&&now-lastCard>=CARD_INTERVAL){lastCard=now;calibrationFrame()}else if(phase===1&&faceLandmarker&&!faceBusy&&now-lastFace>=FACE_INTERVAL){lastFace=now;faceFrame(now)}}}if(running)requestAnimationFrame(loop)}
+function detectCard(){const W=video.videoWidth,H=video.videoHeight;if(!W||!H||!cvReady||!window.cv)return null;const factor=Math.min(1,MAX_DETECT/W),rw=Math.max(1,Math.round(W*factor)),rh=Math.max(1,Math.round(H*factor));const c=document.createElement('canvas');c.width=rw;c.height=rh;c.getContext('2d').drawImage(video,0,0,rw,rh);let src,gray,blur,edges,closed,contours,hierarchy,kernel;try{src=cv.imread(c);gray=new cv.Mat();blur=new cv.Mat();edges=new cv.Mat();closed=new cv.Mat();contours=new cv.MatVector();hierarchy=new cv.Mat();cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);cv.GaussianBlur(gray,blur,new cv.Size(3,3),0);cv.Canny(blur,edges,45,135);edges.copyTo(closed);kernel=cv.getStructuringElement(cv.MORPH_RECT,new cv.Size(5,5));cv.morphologyEx(edges,closed,cv.MORPH_CLOSE,kernel);cv.dilate(closed,closed,kernel);cv.findContours(closed,contours,hierarchy,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE);const target=CARD_W/CARD_H,A=rw*rh,candidates=[];for(let i=0;i<contours.size();i++){let cnt=null;try{cnt=contours.get(i);const area=Math.abs(cv.contourArea(cnt));if(area<A*.018||area>A*.82)continue;const rect=cv.minAreaRect(cnt),L=Math.max(rect.size.width,rect.size.height),S=Math.min(rect.size.width,rect.size.height);if(S<30)continue;const ratio=L/Math.max(1,S),err=Math.abs(ratio-target)/target;if(err>.34)continue;const fill=area/Math.max(1,L*S);if(fill<.30)continue;const center={x:rect.center.x/factor,y:rect.center.y/factor},ang=rect.angle*Math.PI/180,ux=Math.cos(ang),uy=Math.sin(ang),vx=-uy,vy=ux,l=L/(2*factor),s=S/(2*factor);const points=[{x:center.x-l*ux-s*vx,y:center.y-l*uy-s*vy},{x:center.x+l*ux-s*vx,y:center.y+l*uy-s*vy},{x:center.x+l*ux+s*vx,y:center.y+l*uy+s*vy},{x:center.x-l*ux+s*vx,y:center.y-l*uy+s*vy}];candidates.push({points,longSide:L/factor,shortSide:S/factor,center,score:area*(1-Math.min(1,err)*1.5)*fill})}catch(e){}finally{if(cnt)try{cnt.delete()}catch(e){}}}candidates.sort((a,b)=>b.score-a.score);return candidates[0]||null}catch(e){console.error('OpenCV',e);return null}finally{[src,gray,blur,edges,closed,contours,hierarchy,kernel].filter(Boolean).forEach(x=>{try{x.delete()}catch(e){}})}}
+function cardIsStable(a,b){if(!a||!b)return false;const move=dist(avg(a.points),avg(b.points)),size=Math.abs(a.longSide-b.longSide)/Math.max(1,a.longSide);return move<22&&size<.055}
+function drawPoly(points,color='#00e676',width=4){if(!points?.length)return;liveCtx.strokeStyle=color;liveCtx.lineWidth=width;liveCtx.beginPath();points.forEach((p,i)=>i?liveCtx.lineTo(p.x,p.y):liveCtx.moveTo(p.x,p.y));liveCtx.closePath();liveCtx.stroke()}
+function calibrationFrame(){const card=detectCard();if(!card){cardStable=0;lastDetectedCard=null;detectedCard=null;$('cardCount').textContent='0';$('cardProgress').style.width='0%';$('cardState').textContent='Non rilevata';$('captureCardBtn').classList.add('hidden');setStatus('Carta non rilevata: mostra quasi tutti i bordi e tienila ferma.','bad');return}detectedCard=card;drawPoly(card.points);$('cardState').textContent='Rilevata';cardStable=lastDetectedCard&&cardIsStable(lastDetectedCard,card)?cardStable+1:Math.max(0,cardStable-1);lastDetectedCard=card;const n=Math.min(STABLE_CARD,cardStable);$('cardCount').textContent=n;$('cardProgress').style.width=n/STABLE_CARD*100+'%';if(n>=STABLE_CARD){$('captureCardBtn').classList.remove('hidden');setStatus('Carta stabile. Ora blocca la foto.','ok')}else setStatus('Carta riconosciuta. Resta fermo.')}
 
-const $=id=>document.getElementById(id),
-      video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d"), freeze=$("freeze"), videoBox=$("videoBox");
-
-let stream=null, running=false, rafId=0, phase=0,
-    faceLandmarker=null,
-    pxPerMm=null,
-    faceSamples=[], stableFrames=0, finished=false,
-    livePD=0, smoothPD=0, overlayLM=null,
-    manual={active:false, pts:[]};
-
-function setStatus(msg,type=""){
-  const el=$("status"); el.className="status"+(type?" "+type:""); el.textContent=msg;
-}
-
-$("startBtn").onclick=async()=>{ $("intro").classList.add("hidden"); $("app").classList.remove("hidden"); resetState(); await startCamera(); };
-$("repeatBtn").onclick=async()=>{ $("result").classList.add("hidden"); resetState(); await startCamera(); };
-
-function resetState(){
-  running=false; cancelAnimationFrame(rafId);
-  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
-  phase=0; pxPerMm=null;
-  faceSamples=[]; stableFrames=0; finished=false;
-  livePD=0; smoothPD=0; overlayLM=null;
-  endManual();
-  
-  $("title").textContent="Fase 1 — Calibrazione Carta";
-  $("instructions").textContent="Posiziona la carta sotto il mento e clicca 'Scatta Foto'.";
-  $("faceGuide").classList.add("hidden");
-  $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
-  $("liveHUD").classList.add("hidden");
-  $("snapBtn").classList.remove("hidden");
-  $("measureCount").textContent="0"; $("measureProgress").style.width="0%";
-  $("calState").textContent="Da fare"; $("poseState").textContent="Assente";
-  setStatus("Inizializzazione fotocamera...");
-}
-
-async function startCamera(){
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}},audio:false});
-    video.srcObject=stream;
-    await video.play();
-    videoBox.style.aspectRatio=video.videoWidth+" / "+video.videoHeight;
-    running=true;
-    cancelAnimationFrame(rafId);
-    rafId=requestAnimationFrame(loop);
-    await initializeFaceTracking();
-    setStatus("Fotocamera attiva. Clicca il pulsante blu per scattare e misurare la carta.");
-  }catch(e){
-    setStatus("Impossibile accedere alla fotocamera. Controlla i permessi.","bad");
-  }
-}
-
-async function initializeFaceTracking(){
-  $("engineState").textContent="Caricamento";
-  try{
-    const m = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/+esm");
-    const vision = await m.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm");
-    faceLandmarker = await m.FaceLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-        delegate: "CPU"
-      },
-      runningMode: "VIDEO",
-      numFaces: 1,
-      minFaceDetectionConfidence: 0.5,
-      minFacePresenceConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-      outputFaceBlendshapes: false,
-      outputFacialTransformationMatrixes: false
-    });
-    $("engineState").textContent="Pronto";
-  }catch(e){
-    $("engineState").textContent="Errore";
-    setStatus("Errore nel caricamento del tracciatore oculare. Ricarica la pagina.","bad");
-  }
-}
-
-function loop(now){
-  if(!running) return;
-  try{
-    if(video.readyState>=2 && video.videoWidth>0){
-      const w=video.videoWidth, h=video.videoHeight;
-      if(canvas.width!==w||canvas.height!==h){canvas.width=w; canvas.height=h;}
-      ctx.clearRect(0,0,w,h);
-
-      if(phase===1){
-        faceFrameLive(now);
-        if(overlayLM) drawFaceLive(overlayLM);
-      }
-    }
-  }catch(e){}
-  if(running) rafId=requestAnimationFrame(loop);
-}
-
-/* Modalità Calibrazione Fotografica */
-$("snapBtn").onclick = ()=>{
-  const W = video.videoWidth, H = video.videoHeight;
-  if(!running || !W || !H) return;
-
-  freeze.width = W; freeze.height = H;
-  const fCtx = freeze.getContext("2d");
-  
-  // Disegna l'immagine ribaltata specularmente come la fotocamera
-  fCtx.save();
-  fCtx.scale(-1, 1);
-  fCtx.drawImage(video, -W, 0, W, H);
-  fCtx.restore();
-
-  manual = {active:true, pts:[]};
-  freeze.classList.remove("hidden");
-  $("snapBtn").classList.add("hidden");
-  $("manualControls").classList.remove("hidden");
-  
-  renderFreeze();
-  setStatus("FOTO BLOCCATA: Tocca con il dito i DUE ANGOLI ESTREMI (Lato Lungo) della carta.");
-};
-
-function renderFreeze(){
-  const fCtx = freeze.getContext("2d"), W = freeze.width, H = freeze.height;
-  fCtx.save();
-  fCtx.scale(-1, 1);
-  fCtx.drawImage(video, -W, 0, W, H);
-  fCtx.restore();
-
-  if(manual.pts.length === 2){
-    fCtx.strokeStyle = "#3fb950"; fCtx.lineWidth = 4;
-    fCtx.beginPath();
-    fCtx.moveTo(manual.pts[0].x, manual.pts[0].y);
-    fCtx.lineTo(manual.pts[1].x, manual.pts[1].y);
-    fCtx.stroke();
-  }
-
-  manual.pts.forEach((p, idx)=>{
-    fCtx.fillStyle = idx === 0 ? "#58a6ff" : "#3fb950";
-    fCtx.beginPath(); fCtx.arc(p.x, p.y, 9, 0, Math.PI*2); fCtx.fill();
-    fCtx.strokeStyle = "#ffffff"; fCtx.lineWidth = 2; fCtx.stroke();
-  });
-}
-
-freeze.addEventListener("pointerdown", ev=>{
-  if(!manual.active || manual.pts.length >= 2) return;
-  const r = freeze.getBoundingClientRect();
-  const x = (ev.clientX - r.left) * (freeze.width / r.width);
-  const y = (ev.clientY - r.top) * (freeze.height / r.height);
-  manual.pts.push({x, y});
-  renderFreeze();
-
-  if(manual.pts.length === 2){
-    const px = Math.hypot(manual.pts[0].x - manual.pts[1].x, manual.pts[0].y - manual.pts[1].y);
-    pxPerMm = px / CARD_W_MM;
-    $("manualConfirm").disabled = false;
-    setStatus("Angoli selezionati! Clicca su 'CONFERMA LUNGHEZZA CARTA'.","ok");
-  }
-});
-
-$("manualRetry").onclick = ()=>{
-  manual.pts = [];
-  pxPerMm = null;
-  $("manualConfirm").disabled = true;
-  renderFreeze();
-  setStatus("Tocca i due angoli del lato lungo della carta.");
-};
-
-$("manualConfirm").onclick = ()=>{
-  if(!manual.active || !pxPerMm) return;
-  endManual();
-  enterFacePhase();
-};
-
-function endManual(){
-  manual = {active:false, pts:[]};
-  freeze.classList.add("hidden");
-  $("manualControls").classList.add("hidden");
-  $("snapBtn").classList.remove("hidden");
-  $("manualConfirm").disabled = true;
-}
-
-function enterFacePhase(){
-  phase = 1;
-  $("title").textContent = "Fase 2 — Tracciamento Iride Live";
-  $("instructions").textContent = "Calibrazione completata. Ora metti via la carta e guarda fisso al centro dello schermo.";
-  $("faceGuide").classList.remove("hidden");
-  $("calArea").classList.add("hidden");
-  $("measureArea").classList.remove("hidden");
-  $("liveHUD").classList.remove("hidden");
-  $("calState").textContent = "OK";
-  setStatus("Tracciamento avviato. Guarda l'obiettivo...","ok");
-}
-
-/* Analisi Pupille Live */
-function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
-function avg(pts){ return {x: pts.reduce((s,p)=>s+p.x,0)/pts.length, y: pts.reduce((s,p)=>s+p.y,0)/pts.length}; }
-
-function faceFrameLive(now){
-  if(!faceLandmarker) return;
-  let result;
-  try{
-    result = faceLandmarker.detectForVideo(video, now);
-  }catch(e){
-    return;
-  }
-
-  if(!result.faceLandmarks || !result.faceLandmarks.length){
-    overlayLM = null;
-    $("poseState").textContent = "Assente";
-    setStatus("Volto non inquadrato. Posizionati al centro.","bad");
-    return;
-  }
-
-  const lm = result.faceLandmarks[0];
-  
-  // Verifica se MediaPipe sta fornendo i punti dell'iride
-  if(!lm[468] || !lm[473]){
-    $("poseState").textContent = "Incompleto";
-    setStatus("Elaborazione occhi in corso... Resta fermo.","bad");
-    return;
-  }
-
-  overlayLM = lm;
-  $("poseState").textContent = "OK";
-
-  const W = video.videoWidth, H = video.videoHeight;
-  const p = i => ({x: lm[i].x*W, y: lm[i].y*H});
-
-  // Punti iride MediaPipe (468: centro sinistro, 473: centro destro)
-  const irisL = p(468);
-  const irisR = p(473);
-  
-  livePD = dist(irisL, irisR) / pxPerMm;
-
-  if(livePD >= 45 && livePD <= 80){
-    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
-    $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
-
-    const midX = (irisL.x + irisR.x)/2;
-    faceSamples.push({
-      total: smoothPD,
-      od: Math.abs(irisR.x - midX)/pxPerMm,
-      os: Math.abs(irisL.x - midX)/pxPerMm
-    });
-
-    stableFrames++;
-    const progress = Math.min(stableFrames, MEASURE_REQUIRED);
-    $("measureCount").textContent = progress;
-    $("measureProgress").style.width = (progress / MEASURE_REQUIRED * 100) + "%";
-    setStatus("Acquisizione misura pupillare in corso... Resta fermo.");
-
-    if(stableFrames >= MEASURE_REQUIRED && !finished){
-      finishMeasurement();
-    }
-  } else {
-    setStatus("Avvicinati o allontanati leggermente per stabilizzare la misura.","bad");
-  }
-}
-
-function drawFaceLive(lm){
-  const W = video.videoWidth, H = video.videoHeight;
-  const p = i => ({x: lm[i].x*W, y: lm[i].y*H});
-  const irisL = p(468);
-  const irisR = p(473);
-
-  [irisL, irisR].forEach(pt=>{
-    ctx.strokeStyle = "#3fb950"; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(pt.x, pt.y, 6, 0, Math.PI*2); ctx.stroke();
-    ctx.fillStyle = "#3fb950"; ctx.beginPath(); ctx.arc(pt.x, pt.y, 2, 0, Math.PI*2); ctx.fill();
-  });
-}
-
-function finishMeasurement(){
-  finished = true;
-  const totals = faceSamples.map(x=>x.total).sort((a,b)=>a-b);
-  const ods = faceSamples.map(x=>x.od).sort((a,b)=>a-b);
-  const oss = faceSamples.map(x=>x.os).sort((a,b)=>a-b);
-  const mid = Math.floor(totals.length/2);
-
-  $("pdTotal").textContent = totals[mid].toFixed(1);
-  $("pdOD").textContent = ods[mid].toFixed(1) + " mm";
-  $("pdOS").textContent = oss[mid].toFixed(1) + " mm";
-
-  $("liveHUD").classList.add("hidden");
-  $("result").classList.remove("hidden");
-  setStatus("Misurazione completata con successo!","ok");
-}
-</script>
-</body>
-</html>
+/* FONDAMENTALE: il fotogramma viene copiato in frozenCanvas e poi non viene più letto dal video durante i punti. */
+function freezeCurrentFrame(){const W=video.videoWidth,H=video.videoHeight;frozenCanvas.width=W;frozenCanvas.height=H;frozenCtx.save();frozenCtx.translate(W,0);frozenCtx.scale(-1,1);frozenCtx.drawImage(video,0,0,W,H);frozenCtx.restore();photoCanvas.width=W;photoCanvas.height=H;photoCtx.clearRect(0,0,W,H);photoCtx.drawImage(frozenCanvas,0,0);$('video').classList.add('hidden');$('liveCanvas').classList.add('hidden');$('photoCanvas').classList.remove('hidden');photoMode=true}
+function photoPoint(ev){const r=photoCanvas.getBoundingClientRect();return{x:clamp((ev.clientX-r.left)/r.width*photoCanvas.width,0,photoCanvas.width),y:clamp((ev.clientY-r.top)/r.height*photoCanvas.height,0,photoCanvas.height)}}
+function redrawPhoto(points,color='#ffd400'){photoCtx.clearRect(0,0,photoCanvas.width,photoCanvas.height);photoCtx.drawImage(frozenCanvas,0,0);points.forEach((p,i)=>{photoCtx.fillStyle=color;photoCtx.beginPath();photoCtx.arc(p.x,p.y,7,0,Math.PI*2);photoCtx.fill();photoCtx.fillStyle='#111';photoCtx.font='bold 15px Arial';photoCtx.fillText(String(i+1),p.x+9,p.y-9)})}
+$('captureCardBtn').onclick=()=>{if(!detectedCard)return;freezeCurrentFrame();const W=video.videoWidth;cardPoints=detectedCard.points.map(p=>({x:W-p.x,y:p.y}));redrawPhoto(cardPoints,'#00e676');$('cardPointsArea').classList.remove('hidden');$('captureCardBtn').classList.add('hidden');setPointStatus('Foto congelata. I punti automatici sono caricati; puoi correggerli cliccando sulla foto.','ok');updateCardConfirm()};
+photoCanvas.addEventListener('click',ev=>{if(!photoMode)return;const p=photoPoint(ev);if(phase===0){if(cardPoints.length>=4)cardPoints=[];cardPoints.push(p);redrawPhoto(cardPoints,'#00e676');setPointStatus('Punto '+cardPoints.length+'/4.');updateCardConfirm()}else if(phase===1){if(eyePoints.length>=2)eyePoints=[];eyePoints.push(p);redrawPhoto(eyePoints,'#ff3030');setEyeStatus('Punto pupillare '+eyePoints.length+'/2.');$('confirmEyes').disabled=eyePoints.length!==2}});
+function updateCardConfirm(){$('confirmCard').disabled=cardPoints.length!==4}$('resetCardPoints').onclick=()=>{cardPoints=[];redrawPhoto([]);setPointStatus('Punti cancellati. Clicca i 4 angoli.');updateCardConfirm()};
+function orderQuad(pts){const c=avg(pts);return[...pts].sort((a,b)=>Math.atan2(a.y-c.y,a.x-c.x)-Math.atan2(b.y-c.y,b.x-c.x))}
+function quadDimensions(pts){const q=orderQuad(pts),s=[dist(q[0],q[1]),dist(q[1],q[2]),dist(q[2],q[3]),dist(q[3],q[0])];return{q,long:(s[0]+s[2])/2,short:(s[1]+s[3])/2,ratio:((s[0]+s[2])/2)/Math.max(1,(s[1]+s[3])/2)}}
+$('confirmCard').onclick=async()=>{if(cardPoints.length!==4)return;const d=quadDimensions(cardPoints),target=CARD_W/CARD_H;if(Math.abs(d.ratio-target)/target>.28){setPointStatus('I punti non formano una carta plausibile. Correggili.','bad');return}const pxLong=d.long/CARD_W,pxShort=d.short/CARD_H,scale=(pxLong+pxShort)/2;if(!isFinite(scale)||scale<1){setPointStatus('Scala non valida. Ripeti i punti.','bad');return}calibration={pxPerMm:scale};phase=1;photoMode=false;cardPoints=[];$('cardPointsArea').classList.add('hidden');$('cardArea').classList.add('hidden');$('faceArea').classList.remove('hidden');$('title').textContent='Fase 2 — Misurazione pupillare';$('instructions').textContent='Rimuovi lentamente la carta senza muovere la testa. Guarda dritto nella fotocamera.';$('cardGuide').classList.add('hidden');$('faceGuide').classList.remove('hidden');$('photoCanvas').classList.add('hidden');$('video').classList.remove('hidden');$('liveCanvas').classList.remove('hidden');faceStable=0;faceSampleBuffer=[];setStatus('Calibrazione fissata. Carico il modello facciale…','ok');await initializeFaceTracking()};
+async function initializeFaceTracking(){try{const ok=await timeout(window.mpReady,20000,'MediaPipe non risponde.');if(!ok)throw window.mpLoadError||new Error('MediaPipe non disponibile.');const vision=await timeout(window.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm'),20000,'Componenti facciali non disponibili.');faceLandmarker=await timeout(window.FaceLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:'CPU'},runningMode:'VIDEO',numFaces:1,minFaceDetectionConfidence:.60,minFacePresenceConfidence:.60,minTrackingConfidence:.60,outputFaceBlendshapes:false,outputFacialTransformationMatrixes:false}),30000,'Modello facciale non disponibile.');$('faceState').textContent='Pronto';setStatus('Volto pronto. Guarda dritto.','ok')}catch(e){console.error(e);$('faceState').textContent='Errore';setStatus('Errore modello facciale: '+(e.message||e),'bad')}}
+function measureEyes(lm){if(lm.length<478)return null;const W=video.videoWidth,H=video.videoHeight,p=i=>({x:lm[i].x*W,y:lm[i].y*H}),right=avg([468,469,470,471,472].map(p)),left=avg([473,474,475,476,477].map(p)),a=p(33),b=p(263),dx=b.x-a.x,dy=b.y-a.y,line=Math.hypot(dx,dy);if(line<45)return null;const tilt=Math.abs(Math.atan2(dy,dx)*180/Math.PI);if(tilt>12)return null;const fw=dist(p(234),p(454));if(fw<90)return null;const pd=dist(right,left),mm=pd/calibration.pxPerMm;if(mm<35||mm>90)return null;return{right,left,pd,totalMm:mm}}
+function drawFacePoints(lm){const W=video.videoWidth,H=video.videoHeight,pts=[avg([468,469,470,471,472].map(i=>({x:lm[i].x*W,y:lm[i].y*H}))),avg([473,474,475,476,477].map(i=>({x:lm[i].x*W,y:lm[i].y*H})))];liveCtx.fillStyle='#ff3030';pts.forEach(p=>{liveCtx.beginPath();liveCtx.arc(p.x,p.y,6,0,Math.PI*2);liveCtx.fill()})}
+async function faceFrame(now){if(!faceLandmarker||faceBusy||photoMode)return;faceBusy=true;try{const r=faceLandmarker.detectForVideo(video,performance.now());if(!r.faceLandmarks?.length){faceStable=0;faceSampleBuffer=[];$('faceState').textContent='Non rilevato';$('faceCount').textContent='0';$('faceProgress').style.width='0%';setStatus('Volto non rilevato. Guarda dritto.','bad');return}const m=measureEyes(r.faceLandmarks[0]);if(!m){faceStable=0;faceSampleBuffer=[];setStatus('Posizione non sufficientemente frontale. Guarda dritto.','bad');return}$('faceState').textContent='Rilevato';drawFacePoints(r.faceLandmarks[0]);faceSampleBuffer.push(m);if(faceSampleBuffer.length>15)faceSampleBuffer.shift();if(faceSampleBuffer.length>=5){const med=median(faceSampleBuffer.map(x=>x.pd));if(Math.abs(m.pd-med)<1.0)faceStable++;else faceStable=Math.max(0,faceStable-1)}const n=Math.min(STABLE_FACE,faceStable);$('faceCount').textContent=n;$('faceProgress').style.width=n/STABLE_FACE*100+'%';if(n>=STABLE_FACE){$('captureFaceBtn').classList.remove('hidden');setStatus('Volto stabile. Blocca la foto per inserire i punti.','ok')}else setStatus('Volto rilevato. Non muoverti.')}catch(e){console.error(e);setStatus('Errore rilevamento volto: '+(e.message||e),'bad')}finally{faceBusy=false}}
+$('captureFaceBtn').onclick=()=>{freezeCurrentFrame();$('facePointsArea').classList.remove('hidden');$('captureFaceBtn').classList.add('hidden');const best=faceSampleBuffer.length?faceSampleBuffer[faceSampleBuffer.length-1]:null;const W=video.videoWidth;eyePoints=best?[{x:W-best.right.x,y:best.right.y},{x:W-best.left.x,y:best.left.y}]:[];redrawPhoto(eyePoints,'#ff3030');setEyeStatus(eyePoints.length===2?'Centri pupillari automatici caricati. Puoi correggerli sulla foto.':'Clicca le 2 pupille.','ok');$('confirmEyes').disabled=eyePoints.length!==2};
+$('resetEyePoints').onclick=()=>{eyePoints=[];redrawPhoto([]);setEyeStatus('Punti cancellati. Clicca prima la pupilla destra, poi la sinistra.');$('confirmEyes').disabled=true};
+$('confirmEyes').onclick=()=>{if(eyePoints.length!==2)return;const pdPx=dist(eyePoints[0],eyePoints[1]),pd=pdPx/calibration.pxPerMm;if(pd<35||pd>90){setEyeStatus('PD non plausibile. Correggi i punti.','bad');return}const mid={x:(eyePoints[0].x+eyePoints[1].x)/2,y:(eyePoints[0].y+eyePoints[1].y)/2},od=dist(eyePoints[0],mid)/calibration.pxPerMm,os=dist(eyePoints[1],mid)/calibration.pxPerMm;$('pdTotal').textContent=pd.toFixed(1);$('pdOD').textContent=od.toFixed(1)+' mm';$('pdOS').textContent=os.toFixed(1)+' mm';const vals=faceSampleBuffer.map(x=>x.pd/calibration.pxPerMm),m=vals.length?median(vals):pd,sd=vals.length?Math.sqrt(vals.reduce((a,x)=>a+(x-m)**2,0)/vals.length):99;$('quality').textContent=sd<=.25?'Molto stabile':sd<=.6?'Stabile':'Da verificare';$('result').classList.remove('hidden');$('facePointsArea').classList.add('hidden');$('faceArea').classList.add('hidden');phase=2;running=false;setStatus('Misurazione completata. Verifica il risultato con l’ottico.','ok')};
+window.addEventListener('beforeunload',()=>{if(stream)stream.getTracks().forEach(t=>t.stop())});
+</script></body></html>
