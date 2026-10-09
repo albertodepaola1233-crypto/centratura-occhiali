@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Misurazione Centratura Occhiali Alta Precisione</title>
+<title>Misurazione Centratura Occhiali Live - High Precision</title>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <style>
@@ -58,15 +58,15 @@ video{transform:scaleX(-1)}
 <b>🔬 PROTOCOLLO DI MISURAZIONE OTTICA CERTIFICATO</b>
 <ul>
   <li><b>Fase 1 - Tessera:</b> Appoggia una carta standard (85.6 mm) <b>aderente esattamente sotto il mento</b>. Premi il pulsante ed evidenzia i 2 angoli estremi del lato lungo.</li>
-  <li><b>Fase 2 - Tracciamento 3D:</b> Togli la carta. Mantieni la testa dritta guardando la fotocamera a 40–50 cm. Il sistema verifica inclinazione 3D e stabilità pupillare.</li>
+  <li><b>Fase 2 - Tracciamento 3D:</b> Togli la carta. Mantieni la testa dritta guardando la fotocamera a 40–50 cm. Il sistema rileverà automaticamente i centri pupillari.</li>
 </ul>
 </div>
 <button id="startBtn">INIZIA MISURAZIONE HIGH-PRECISION</button>
 </section>
 
 <section id="app" class="card hidden">
-<h2 id="title">Fase 1 — Calibrazione Millimetrica Carta</h2>
-<p id="instructions">Appoggia la carta sotto il mento (orizzontale) e premi per fermare l'immagine.</p>
+<h2 id="title">Fase 1 — Calibrazione Scala Millimetrica</h2>
+<p id="instructions">Appoggia la carta sotto il mento (orizzontale) dentro il rettangolo blu e scatta la foto.</p>
 
 <div class="videoBox" id="videoBox">
   <video id="video" autoplay muted playsinline></video>
@@ -98,7 +98,7 @@ video{transform:scaleX(-1)}
 </div>
 
 <div id="measureArea" class="hidden">
-  <b>Stabilità Tracciamento Iride: <span id="measureCount">0</span>/30</b>
+  <b>Stabilità Tracciamento Iride: <span id="measureCount">0</span>/25</b>
   <div class="progress"><div id="measureProgress"></div></div>
 </div>
 
@@ -121,7 +121,7 @@ video{transform:scaleX(-1)}
 <script>
 "use strict";
 const CARD_W_MM = 85.60;
-const MEASURE_REQUIRED = 30; // 30 campioni per garantire la precisione ottica
+const MEASURE_REQUIRED = 25;
 
 const $=id=>document.getElementById(id),
       video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d"), freeze=$("freeze"), videoBox=$("videoBox");
@@ -196,9 +196,9 @@ function initFaceMesh(){
     });
     faceMesh.setOptions({
       maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.4,
-      minTrackingConfidence: 0.4
+      refineLandmarks: true, // Fondamentale per estrarre le pupille (punti 468 e 473)
+      minDetectionConfidence: 0.3,
+      minTrackingConfidence: 0.3
     });
     faceMesh.onResults(onResults);
     $("engineState").textContent="Pronto";
@@ -230,16 +230,16 @@ function onResults(results){
   if(!results.multiFaceLandmarks || !results.multiFaceLandmarks.length){
     overlayLM = null;
     $("poseState").textContent = "Assente";
-    setStatus("Volto non inquadrato. Mettiti al centro dello schermo.","bad");
+    setStatus("Volto non inquadrato. Mettiti al centro dello schermo e guarda la fotocamera.","bad");
     return;
   }
 
   const lm = results.multiFaceLandmarks[0];
   overlayLM = lm;
 
-  const p = i => ({x: lm[i].x * W, y: lm[i].y * H, z: lm[i].z * W});
+  const p = i => ({x: lm[i].x * W, y: lm[i].y * H, z: (lm[i].z || 0) * W});
 
-  /* CONTROLLI RIGIDI DELLA POSA TRIDIMENSIONALE (Anti-Errore Prospettico) */
+  /* CONTROLLO POSA TRIDIMENSIONALE */
   const leftEyeOuter = p(33), rightEyeOuter = p(263);
   const dx = rightEyeOuter.x - leftEyeOuter.x;
   const dy = rightEyeOuter.y - leftEyeOuter.y;
@@ -248,12 +248,12 @@ function onResults(results){
   const roll = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
   const yaw = Math.abs(Math.atan2(dz, dx) * (180 / Math.PI));
 
-  if(roll > 3.0){
+  if(roll > 4.5){
     $("poseState").textContent = "Inclinato";
-    setStatus("TESTA INCLINATA: Mantieni la testa perfettamente dritta.","bad");
+    setStatus("TESTA INCLINATA: Mantieni la testa dritta.","bad");
     return;
   }
-  if(yaw > 4.0){
+  if(yaw > 6.0){
     $("poseState").textContent = "Ruotato";
     setStatus("TESTA RUOTATA: Guarda direttamente la fotocamera.","bad");
     return;
@@ -262,18 +262,24 @@ function onResults(results){
 
   drawFaceLive(lm);
 
-  // Punti iride avanzati MediaPipe (468 e 473)
-  const irisL = lm[468] ? p(468) : p(145);
-  const irisR = lm[473] ? p(473) : p(374);
+  // Rilevamento avanzato iride MediaPipe (468: centro sinistro, 473: centro destro)
+  let irisL, irisR;
+  if(lm.length > 473 && lm[468] && lm[473]){
+    irisL = p(468);
+    irisR = p(473);
+  } else {
+    // Fallback automatico sugli angoli interni degli occhi
+    irisL = p(145);
+    irisR = p(374);
+  }
   
-  // Punti palpebra inferiore per Altezza H
   const eyeBottomL = p(145);
   const eyeBottomR = p(374);
   
   livePD = Math.hypot(irisL.x - irisR.x, irisL.y - irisR.y) / pxPerMm;
 
-  if(livePD >= 45 && livePD <= 80){
-    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.85 + livePD * 0.15);
+  if(livePD >= 40 && livePD <= 85){
+    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
     $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
 
     const midX = (irisL.x + irisR.x)/2;
@@ -281,7 +287,7 @@ function onResults(results){
       total: smoothPD,
       od: Math.abs(irisR.x - midX)/pxPerMm,
       os: Math.abs(irisL.x - midX)/pxPerMm,
-      hOD: Math.abs(irisR.y - eyeBottomR.y)/pxPerMm + 14.5, // Distanza standard centro pupilla - montatura
+      hOD: Math.abs(irisR.y - eyeBottomR.y)/pxPerMm + 14.5,
       hOS: Math.abs(irisL.y - eyeBottomL.y)/pxPerMm + 14.5
     });
 
@@ -293,7 +299,7 @@ function onResults(results){
     const acc = Math.min(100, Math.round((progress/MEASURE_REQUIRED)*100));
     $("accState").textContent = acc + "%";
 
-    setStatus("CAMPIONAMENTO HIGH-PRECISION: Mantieni lo sguardo fisso...","ok");
+    setStatus("IRIDE RILEVATA: Resta fermo qualche secondo...","ok");
 
     if(stableFrames >= MEASURE_REQUIRED && !finished){
       finishMeasurement();
@@ -303,7 +309,7 @@ function onResults(results){
   }
 }
 
-/* SCATTO FOTO E FERMO IMMAGINE SUL CANVAS */
+/* SCATTO FOTO E FERMO IMMAGINE */
 $("snapBtn").onclick = ()=>{
   const W = video.videoWidth, H = video.videoHeight;
   if(!running || !W || !H) return;
@@ -396,8 +402,8 @@ function endManual(){
 
 function enterFacePhase(){
   phase = 1;
-  $("title").textContent = "Fase 2 — Tracciamento 3D Pupillare";
-  $("instructions").textContent = "Calibrazione riuscita. Metti via la carta, rimani fermo e guarda al centro dello schermo.";
+  $("title").textContent = "Fase 2 — Tracciamento Iride Live";
+  $("instructions").textContent = "Calibrazione riuscita. Metti via la carta, resta fermo e guarda al centro dello schermo.";
   $("cardGuide").classList.add("hidden");
   $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden");
@@ -406,28 +412,40 @@ function enterFacePhase(){
   setStatus("Metti via la carta, resta fermo e guarda al centro dello schermo...","ok");
 }
 
+/* MESH FACCIALE A PALLINI E TARGET IRIDE AMEVISTA */
 function drawFaceLive(lm){
   const W = video.videoWidth, H = video.videoHeight;
   const p = i => ({x: lm[i].x * W, y: lm[i].y * H});
 
-  // MESH FAACIALE A PALLINI AZZURRI COMPLETA
-  ctx.fillStyle = "rgba(88, 166, 255, 0.4)";
+  // Pallini azzurri su tutto il volto
+  ctx.fillStyle = "rgba(88, 166, 255, 0.45)";
   for(let i = 0; i < lm.length; i++){
     if(i === 468 || i === 473) continue;
     const pt = p(i);
     ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 1.2, 0, Math.PI * 2);
+    ctx.arc(pt.x, pt.y, 1.3, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // CENTRI DELLE IRIDI E TARGET
-  const irisL = lm[468] ? p(468) : p(145);
-  const irisR = lm[473] ? p(473) : p(374);
+  // Centri pupille e mirino verde ad alta visibilità
+  const irisL = (lm.length > 468 && lm[468]) ? p(468) : p(145);
+  const irisR = (lm.length > 473 && lm[473]) ? p(473) : p(374);
 
   [irisL, irisR].forEach(pt=>{
-    ctx.strokeStyle = "#3fb950"; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(pt.x, pt.y, 7, 0, Math.PI*2); ctx.stroke();
-    ctx.fillStyle = "#3fb950"; ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI*2); ctx.fill();
+    // Mirino Esterno
+    ctx.strokeStyle = "#3fb950"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(pt.x, pt.y, 11, 0, Math.PI*2); ctx.stroke();
+    
+    // Punto centrale
+    ctx.fillStyle = "#3fb950"; 
+    ctx.beginPath(); ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI*2); ctx.fill();
+
+    // Linee a croce (Targeting)
+    ctx.strokeStyle = "rgba(63, 185, 80, 0.7)"; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pt.x - 16, pt.y); ctx.lineTo(pt.x + 16, pt.y);
+    ctx.moveTo(pt.x, pt.y - 16); ctx.lineTo(pt.x, pt.y + 16);
+    ctx.stroke();
   });
 }
 
