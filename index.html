@@ -17,6 +17,8 @@ p, ul{line-height:1.5;color:#8b949e;margin-top:6px;margin-bottom:12px}
 ul{padding-left:20px}
 li{margin-bottom:6px}
 .warning{background:rgba(210,153,34,0.15);border:1px solid #d29922;border-radius:14px;padding:16px;margin:14px 0;color:#e3b341}
+.disclaimer{background:rgba(248,81,73,0.1);border:1px solid #da3633;border-radius:14px;padding:16px;margin:16px 0;font-size:13px;line-height:1.6;color:#f85149}
+.disclaimer b{color:#ff7b72}
 button{border:0;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:700;background:#238636;color:#fff;cursor:pointer;margin:4px 0;transition:all .2s;width:100%}
 button:hover{background:#2ea043}
 button:disabled{opacity:.3;cursor:not-allowed}
@@ -53,15 +55,24 @@ video{transform:scaleX(-1)}
 <div class="wrap">
 
 <section id="intro" class="card">
-<h1>Misurazione Centratura Occhiali Alta Precisione</h1>
+<h1>Misurazione Centratura Occhiali Online</h1>
 <div class="warning">
-<b>🔬 PROTOCOLLO DI MISURAZIONE OTTICA CERTIFICATO</b>
+<b>💡 ISTRUZIONI DI PROCEDURA</b>
 <ul>
-  <li><b>Fase 1 - Tessera:</b> Appoggia una carta standard (85.6 mm) <b>aderente esattamente sotto il mento</b>. Premi il pulsante ed evidenzia i 2 angoli estremi del lato lungo.</li>
-  <li><b>Fase 2 - Tracciamento 3D:</b> Togli la carta. Mantieni la testa dritta guardando la fotocamera a 40–50 cm. Il sistema rileverà automaticamente i centri pupillari.</li>
+  <li><b>Fase 1 (Tessera):</b> Posiziona una carta rigida (Carta di Credito o Codice Fiscale da 85.6 mm) aderente sotto il mento. Scatta la foto e tocca i due angoli estremi del lato lungo.</li>
+  <li><b>Fase 2 (Iride):</b> Rimuovi la carta, resta perfettamente fermo e guarda fisso la fotocamera. Il sistema rileverà la Distanza Pupillare e le Altezze di Centratura.</li>
 </ul>
 </div>
-<button id="startBtn">INIZIA MISURAZIONE HIGH-PRECISION</button>
+
+<div class="disclaimer">
+<b>⚠️ CONDIZIONI DEL SERVIZIO E NOTE DI RESPONSABILITÀ</b><br>
+Utilizzando questo strumento digitale ti affidi a questa misurazione automatizzata per approfittare delle offerte e dei prezzi del nostro sito. Trattandosi di un sistema digitale eseguito autonomamente dall'utente, <b>non possiamo assicurare al 100% una centratura perfetta</b>.<br><br>
+In caso di incongruenze o problematiche visive dopo l'arrivo dell'occhiale, <b>non ci riteniamo responsabili per alcun problema riscontrato</b>, specialmente se non sono state rispettate rigorosamente le linee guida indicate.<br><br>
+In caso di errore, l'unica soluzione disponibile sarà rispedire la montatura acquistata presso i nostri laboratori e richiedere la lavorazione di una nuova coppia di lenti a carico del cliente.<br><br>
+<b>Consiglio:</b> Per prescrizioni complesse, lenti progressive elevate, o in caso di dubbi, ti invitiamo a visitare una delle nostre sedi fisiche per una centratura manuale eseguita dai nostri ottici esperti.
+</div>
+
+<button id="startBtn">INIZIA MISURAZIONE</button>
 </section>
 
 <section id="app" class="card hidden">
@@ -111,7 +122,7 @@ video{transform:scaleX(-1)}
     <div class="metric">Altezza H (OD)<b id="hOD">—</b></div>
     <div class="metric">Altezza H (OS)<b id="hOS">—</b></div>
   </div>
-  <p class="small">Parametri geometrici calcolati con compensazione tridimensionale della posa.</p>
+  <p class="small">Misurazione completata. I dati verranno applicati al tuo ordine.</p>
   <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
 </div>
 </section>
@@ -239,7 +250,7 @@ function onResults(results){
 
   const p = i => ({x: lm[i].x * W, y: lm[i].y * H, z: (lm[i].z || 0) * W});
 
-  /* CONTROLLI RIGIDI DELLA POSA 3D */
+  /* CONTROLLI DI POSA TRIDIMENSIONALE */
   const leftEyeOuter = p(33), rightEyeOuter = p(263);
   const dx = rightEyeOuter.x - leftEyeOuter.x;
   const dy = rightEyeOuter.y - leftEyeOuter.y;
@@ -262,7 +273,6 @@ function onResults(results){
 
   drawFaceLive(lm);
 
-  // Selezione robusta del centro iride MediaPipe con fallback immediato
   let irisL = (lm.length > 468 && lm[468]) ? p(468) : p(145);
   let irisR = (lm.length > 473 && lm[473]) ? p(473) : p(374);
   
@@ -272,7 +282,6 @@ function onResults(results){
   const currentPxDist = Math.hypot(irisL.x - irisR.x, irisL.y - irisR.y);
   livePD = currentPxDist / pxPerMm;
 
-  // Intervallo PD valido dinamico per prevenire blocchi di calcolo
   if(livePD >= 30 && livePD <= 95){
     smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.75 + livePD * 0.25);
     $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
@@ -407,7 +416,6 @@ function enterFacePhase(){
   setStatus("Metti via la carta, resta fermo e guarda al centro dello schermo...","ok");
 }
 
-/* MESH FACCIALE A PALLINI E TARGET IRIDE AMEVISTA */
 function drawFaceLive(lm){
   const W = video.videoWidth, H = video.videoHeight;
   const p = i => ({x: lm[i].x * W, y: lm[i].y * H});
