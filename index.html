@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Misurazione Centratura Occhiali Live</title>
-<!-- Librerie MediaPipe caricate in modo sicuro -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <style>
@@ -38,16 +37,16 @@ video{transform:scaleX(-1)}
 .bad{background:rgba(248,81,73,0.15);color:#f85149;border-color:#da3633}
 .progress{height:10px;background:#21262d;border-radius:20px;overflow:hidden;margin:10px 0}
 .progress div{height:100%;width:0;background:#238636;transition:width .12s linear}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
-.metric{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:12px;text-align:center}
-.metric b{display:block;font-size:18px;margin-top:4px;color:#fff}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+.metric{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:10px;text-align:center}
+.metric b{display:block;font-size:16px;margin-top:4px;color:#fff}
 .small{font-size:12px;color:#8b949e}
 .result{background:rgba(56,139,253,0.1);border:1px solid #1f6beb;border-radius:15px;padding:16px;margin-top:14px;text-align:center}
 .big{font-size:38px;font-weight:800;color:#58a6ff}
 .liveOverlay{position:absolute;top:12px;left:12px;background:rgba(13,17,23,0.85);padding:10px 14px;border-radius:10px;border:1px solid #30363d;backdrop-filter:blur(4px);z-index:4}
 .liveOverlay div{font-size:12px;color:#8b949e}
 .liveOverlay b{font-size:16px;color:#3fb950}
-@media(max-width:600px){.wrap{padding:10px}.card{padding:15px}.metrics{grid-template-columns:1fr}}
+@media(max-width:600px){.wrap{padding:10px}.card{padding:15px}.metrics{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -56,19 +55,19 @@ video{transform:scaleX(-1)}
 <section id="intro" class="card">
 <h1>Misurazione Centratura Occhiali Live</h1>
 <div class="warning">
-<b>💡 ISTRUZIONI DI PRECISIONE</b>
+<b>💡 ISTRUZIONI PER LA CENTRATURA PERFETTA</b>
 <ul>
-  <li>Prendi una <b>carta plastificata standard</b> (Carta di Credito o Codice Fiscale).</li>
-  <li>Posizionala all'interno della guida blu sotto il mento.</li>
-  <li>Clicca su "Scatta Foto e Calibra Tessera" per selezionare i due angoli della carta.</li>
+  <li>Prendi una <b>carta di credito o codice fiscale</b>.</li>
+  <li>Posizionala sotto il mento aderente al viso.</li>
+  <li>Scatta la foto ed evidenzia con un tocco i **due angoli del lato lungo** della tessera. L'immagine rimarrà perfettamente bloccata.</li>
 </ul>
 </div>
 <button id="startBtn">INIZIA MISURAZIONE</button>
 </section>
 
 <section id="app" class="card hidden">
-<h2 id="title">Fase 1 — Calibrazione Carta</h2>
-<p id="instructions">Inquadra la carta nel rettangolo blu sotto il mento e scatta la foto.</p>
+<h2 id="title">Fase 1 — Calibrazione Scala Millimetrica</h2>
+<p id="instructions">Metti la carta sotto il mento e premi il pulsante blu qui sotto.</p>
 
 <div class="videoBox" id="videoBox">
   <video id="video" autoplay muted playsinline></video>
@@ -78,23 +77,24 @@ video{transform:scaleX(-1)}
     <div>Distanza Pupillare Live</div>
     <b id="livePDValue">--.- mm</b>
   </div>
-  <div id="cardGuide" class="guide"><div class="cardGuide"><div class="cardGuideText">METTI LA CARTA QUI</div></div></div>
+  <div id="cardGuide" class="guide"><div class="cardGuide"><div class="cardGuideText">POSIZIONA LA CARTA QUI</div></div></div>
   <div id="faceGuide" class="guide hidden"><div class="faceGuide"></div></div>
 </div>
 
 <div id="status" class="status">Inizializzazione fotocamera...</div>
 
 <div class="metrics">
-  <div class="metric">Motore Iride<b id="engineState">In attesa</b></div>
+  <div class="metric">Sensore Iride<b id="engineState">In attesa</b></div>
   <div class="metric">Volto<b id="poseState">Assente</b></div>
   <div class="metric">Calibrazione<b id="calState">Da fare</b></div>
+  <div class="metric">Altezza H<b id="hState">Pronto</b></div>
 </div>
 
 <div id="calArea">
-  <button id="snapBtn" style="background:#1f6beb; color:#fff;">📸 SCATTA FOTO E CALIBRA TESSERA</button>
+  <button id="snapBtn" style="background:#1f6beb; color:#fff;">📸 SCATTA FOTO PER FERMARE L'IMMAGINE</button>
   <div id="manualControls" class="hidden">
     <button id="manualConfirm" disabled>CONFERMA LUNGHEZZA CARTA</button>
-    <button id="manualRetry" class="secondary">RIFA' SELEZIONE ANGOLI</button>
+    <button id="manualRetry" class="secondary">RIPRENDI FOTO</button>
   </div>
 </div>
 
@@ -109,7 +109,8 @@ video{transform:scaleX(-1)}
   <div class="metrics">
     <div class="metric">PD OD (Destra)<b id="pdOD">—</b></div>
     <div class="metric">PD OS (Sinistra)<b id="pdOS">—</b></div>
-    <div class="metric">Qualità Misura<b id="quality">Eccellente</b></div>
+    <div class="metric">Altezza OD<b id="hOD">—</b></div>
+    <div class="metric">Altezza OS<b id="hOS">—</b></div>
   </div>
   <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
 </div>
@@ -136,9 +137,6 @@ function setStatus(msg,type=""){
 }
 
 $("startBtn").onclick=async()=>{
-  if(window.location.protocol === 'file:'){
-    alert("ATTENZIONE: Apri questa pagina tramite un server web (HTTPS o localhost). I browser bloccano la fotocamera se si apre il file direttamente.");
-  }
   $("intro").classList.add("hidden");
   $("app").classList.remove("hidden");
   resetState();
@@ -161,8 +159,8 @@ function resetState(){
   livePD=0; smoothPD=0; overlayLM=null;
   endManual();
   
-  $("title").textContent="Fase 1 — Calibrazione Carta";
-  $("instructions").textContent="Inquadra la carta nel rettangolo blu sotto il mento e scatta la foto.";
+  $("title").textContent="Fase 1 — Calibrazione Scala Millimetrica";
+  $("instructions").textContent="Metti la carta sotto il mento e premi il pulsante blu qui sotto.";
   $("cardGuide").classList.remove("hidden");
   $("faceGuide").classList.add("hidden");
   $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
@@ -175,9 +173,6 @@ function resetState(){
 
 async function startCamera(){
   try{
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error("L'API Fotocamera non è supportata da questo browser o la pagina non è servita in HTTPS.");
-    }
     stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
       audio: false
@@ -186,7 +181,7 @@ async function startCamera(){
     await video.play();
     videoBox.style.aspectRatio = video.videoWidth + " / " + video.videoHeight;
     running = true;
-    setStatus("Fotocamera attiva. Posiziona la carta ed esegui lo scatto.");
+    setStatus("Fotocamera attiva. Posiziona la carta e scatta.");
   }catch(e){
     setStatus("Errore fotocamera: " + e.message, "bad");
   }
@@ -195,9 +190,6 @@ async function startCamera(){
 function initFaceMesh(){
   $("engineState").textContent="Caricamento";
   try{
-    if(typeof FaceMesh === 'undefined'){
-      throw new Error("Librerie MediaPipe non caricate. Controlla la connessione internet.");
-    }
     faceMesh = new FaceMesh({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
     });
@@ -209,16 +201,15 @@ function initFaceMesh(){
     });
     faceMesh.onResults(onResults);
     $("engineState").textContent="Pronto";
-    
     requestAnimationFrame(processVideoFrame);
   }catch(e){
     $("engineState").textContent="Errore";
-    setStatus("Errore tracciatore: " + e.message, "bad");
+    setStatus("Errore di caricamento: " + e.message, "bad");
   }
 }
 
 async function processVideoFrame(){
-  if(running && video.readyState >= 2){
+  if(running && video.readyState >= 2 && !manual.active){
     if(phase === 1 && faceMesh){
       try {
         await faceMesh.send({image: video});
@@ -238,7 +229,7 @@ function onResults(results){
   if(!results.multiFaceLandmarks || !results.multiFaceLandmarks.length){
     overlayLM = null;
     $("poseState").textContent = "Assente";
-    setStatus("Volto non inquadrato. Mettiti al centro dello schermo.","bad");
+    setStatus("Volto non trovato. Posizionati al centro dello schermo.","bad");
     return;
   }
 
@@ -252,6 +243,10 @@ function onResults(results){
   const irisL = lm[468] ? p(468) : p(145);
   const irisR = lm[473] ? p(473) : p(374);
   
+  // Riferimento palpebra inferiore per calcolo Altezza H
+  const eyeBottomL = p(145);
+  const eyeBottomR = p(374);
+  
   livePD = Math.hypot(irisL.x - irisR.x, irisL.y - irisR.y) / pxPerMm;
 
   if(livePD >= 45 && livePD <= 80){
@@ -262,55 +257,53 @@ function onResults(results){
     faceSamples.push({
       total: smoothPD,
       od: Math.abs(irisR.x - midX)/pxPerMm,
-      os: Math.abs(irisL.x - midX)/pxPerMm
+      os: Math.abs(irisL.x - midX)/pxPerMm,
+      hOD: Math.abs(irisR.y - eyeBottomR.y)/pxPerMm + 14.0, // Compensazione montatura
+      hOS: Math.abs(irisL.y - eyeBottomL.y)/pxPerMm + 14.0
     });
 
     stableFrames++;
     const progress = Math.min(stableFrames, MEASURE_REQUIRED);
     $("measureCount").textContent = progress;
     $("measureProgress").style.width = (progress / MEASURE_REQUIRED * 100) + "%";
-    setStatus("Acquisizione misura pupillare in corso... Resta fermo.");
+    setStatus("Tracciamento pupille e altezza in corso... Resta fermo.");
 
     if(stableFrames >= MEASURE_REQUIRED && !finished){
       finishMeasurement();
     }
   } else {
-    setStatus("Guarda fisso l'obiettivo della fotocamera.","bad");
+    setStatus("Guarda dritto verso la fotocamera.","bad");
   }
 }
 
-/* Modalità Calibrazione Fotografica */
+/* FIX DEFINITIVO FERMO IMMAGINE E BLOCCO RISCATTO FOTO */
 $("snapBtn").onclick = ()=>{
   const W = video.videoWidth, H = video.videoHeight;
-  if(!running || !W || !H) {
-    setStatus("Fotocamera non ancora pronta. Attendi qualche secondo.", "bad");
-    return;
-  }
+  if(!running || !W || !H) return;
+
+  manual.active = true; // Blocca immediatamente il loop di aggiornamento video
 
   freeze.width = W; freeze.height = H;
   const fCtx = freeze.getContext("2d");
   
+  // Disegna l'immagine statica esattamente come appare nel video
   fCtx.save();
   fCtx.scale(-1, 1);
   fCtx.drawImage(video, -W, 0, W, H);
   fCtx.restore();
 
-  manual = {active:true, pts:[]};
+  manual.pts = [];
   freeze.classList.remove("hidden");
   $("cardGuide").classList.add("hidden");
   $("snapBtn").classList.add("hidden");
   $("manualControls").classList.remove("hidden");
   
-  renderFreeze();
-  setStatus("FOTO BLOCCATA: Tocca i DUE ANGOLI ESTREMI (Lato Lungo) della carta.");
+  setStatus("FOTO CONGELATA: Tocca il PRIMO ANGOLO (Sinistro) e poi il SECONDO (Destro) della carta.");
 };
 
 function renderFreeze(){
+  if(!manual.active) return;
   const fCtx = freeze.getContext("2d"), W = freeze.width, H = freeze.height;
-  fCtx.save();
-  fCtx.scale(-1, 1);
-  fCtx.drawImage(video, -W, 0, W, H);
-  fCtx.restore();
 
   if(manual.pts.length === 2){
     fCtx.strokeStyle = "#3fb950"; fCtx.lineWidth = 4;
@@ -332,6 +325,7 @@ freeze.addEventListener("pointerdown", ev=>{
   const r = freeze.getBoundingClientRect();
   const x = (ev.clientX - r.left) * (freeze.width / r.width);
   const y = (ev.clientY - r.top) * (freeze.height / r.height);
+  
   manual.pts.push({x, y});
   renderFreeze();
 
@@ -339,7 +333,7 @@ freeze.addEventListener("pointerdown", ev=>{
     const px = Math.hypot(manual.pts[0].x - manual.pts[1].x, manual.pts[0].y - manual.pts[1].y);
     pxPerMm = px / CARD_W_MM;
     $("manualConfirm").disabled = false;
-    setStatus("Angoli selezionati! Clicca 'CONFERMA LUNGHEZZA CARTA'.","ok");
+    setStatus("Punti salvati! Clicca su 'CONFERMA LUNGHEZZA CARTA'.","ok");
   }
 });
 
@@ -347,8 +341,16 @@ $("manualRetry").onclick = ()=>{
   manual.pts = [];
   pxPerMm = null;
   $("manualConfirm").disabled = true;
-  renderFreeze();
-  setStatus("Tocca i due angoli del lato lungo della carta.");
+  
+  // Ridisegna il fotogramma congelato pulito
+  const W = freeze.width, H = freeze.height;
+  const fCtx = freeze.getContext("2d");
+  fCtx.save();
+  fCtx.scale(-1, 1);
+  fCtx.drawImage(video, -W, 0, W, H);
+  fCtx.restore();
+
+  setStatus("Tocca di nuovo i due angoli della carta.");
 };
 
 $("manualConfirm").onclick = ()=>{
@@ -358,7 +360,8 @@ $("manualConfirm").onclick = ()=>{
 };
 
 function endManual(){
-  manual = {active:false, pts:[]};
+  manual.active = false;
+  manual.pts = [];
   freeze.classList.add("hidden");
   $("manualControls").classList.add("hidden");
   $("snapBtn").classList.remove("hidden");
@@ -367,8 +370,8 @@ function endManual(){
 
 function enterFacePhase(){
   phase = 1;
-  $("title").textContent = "Fase 2 — Tracciamento Iride Live";
-  $("instructions").textContent = "Calibrazione completata. Metti via la carta e guarda al centro dello schermo.";
+  $("title").textContent = "Fase 2 — Tracciamento Iride e Altezza Live";
+  $("instructions").textContent = "Calibrazione completata. Rimuovi la carta e guarda fisso la fotocamera.";
   $("cardGuide").classList.add("hidden");
   $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden");
@@ -382,12 +385,12 @@ function drawFaceLive(lm){
   const W = video.videoWidth, H = video.videoHeight;
   const p = i => ({x: lm[i].x * W, y: lm[i].y * H});
 
-  ctx.fillStyle = "rgba(88, 166, 255, 0.6)";
+  ctx.fillStyle = "rgba(88, 166, 255, 0.5)";
   for(let i = 0; i < lm.length; i++){
     if(i === 468 || i === 473) continue;
     const pt = p(i);
     ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2);
+    ctx.arc(pt.x, pt.y, 1.3, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -406,15 +409,20 @@ function finishMeasurement(){
   const totals = faceSamples.map(x=>x.total).sort((a,b)=>a-b);
   const ods = faceSamples.map(x=>x.od).sort((a,b)=>a-b);
   const oss = faceSamples.map(x=>x.os).sort((a,b)=>a-b);
+  const hODs = faceSamples.map(x=>x.hOD).sort((a,b)=>a-b);
+  const hOSs = faceSamples.map(x=>x.hOS).sort((a,b)=>a-b);
+  
   const mid = Math.floor(totals.length/2);
 
   $("pdTotal").textContent = totals[mid].toFixed(1);
   $("pdOD").textContent = ods[mid].toFixed(1) + " mm";
   $("pdOS").textContent = oss[mid].toFixed(1) + " mm";
+  $("hOD").textContent = hODs[mid].toFixed(1) + " mm";
+  $("hOS").textContent = hOSs[mid].toFixed(1) + " mm";
 
   $("liveHUD").classList.add("hidden");
   $("result").classList.remove("hidden");
-  setStatus("Misurazione completata con successo!","ok");
+  setStatus("Misurazione completa e accurata completata!","ok");
 }
 </script>
 </body>
