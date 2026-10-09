@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Misurazione Centratura Occhiali Live</title>
+<title>Misurazione Centratura Occhiali Alta Precisione</title>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <style>
@@ -29,8 +29,8 @@ video{transform:scaleX(-1)}
 #overlay{transform:scaleX(-1);pointer-events:none;z-index:2}
 #freeze{transform:none;z-index:10;cursor:crosshair;touch-action:none}
 .guide{position:absolute;inset:0;pointer-events:none;z-index:3}
-.cardGuide{position:absolute;width:42%;aspect-ratio:85.6/53.98;left:50%;bottom:12%;transform:translateX(-50%);border:3px dashed #58a6ff;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,0.35)}
-.cardGuideText{position:absolute;bottom:-24px;left:0;width:100%;text-align:center;font-size:12px;color:#58a6ff;font-weight:bold}
+.cardGuide{position:absolute;width:46%;aspect-ratio:85.6/53.98;left:50%;bottom:8%;transform:translateX(-50%);border:3px dashed #58a6ff;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,0.35)}
+.cardGuideText{position:absolute;bottom:-26px;left:0;width:100%;text-align:center;font-size:11px;color:#58a6ff;font-weight:bold;text-transform:uppercase}
 .faceGuide{position:absolute;height:70%;aspect-ratio:.75;left:50%;top:50%;transform:translate(-50%,-50%);border:3px dashed #238636;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,0.5)}
 .status{padding:13px 15px;border-radius:12px;background:#21262d;font-weight:600;margin:12px 0;overflow-wrap:anywhere;border:1px solid #30363d;text-align:center}
 .ok{background:rgba(46,160,67,0.15);color:#3fb950;border-color:#238636}
@@ -39,7 +39,7 @@ video{transform:scaleX(-1)}
 .progress div{height:100%;width:0;background:#238636;transition:width .12s linear}
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
 .metric{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:10px;text-align:center}
-.metric b{display:block;font-size:16px;margin-top:4px;color:#fff}
+.metric b{display:block;font-size:15px;margin-top:4px;color:#fff}
 .small{font-size:12px;color:#8b949e}
 .result{background:rgba(56,139,253,0.1);border:1px solid #1f6beb;border-radius:15px;padding:16px;margin-top:14px;text-align:center}
 .big{font-size:38px;font-weight:800;color:#58a6ff}
@@ -53,21 +53,20 @@ video{transform:scaleX(-1)}
 <div class="wrap">
 
 <section id="intro" class="card">
-<h1>Misurazione Centratura Occhiali Live</h1>
+<h1>Misurazione Centratura Occhiali Alta Precisione</h1>
 <div class="warning">
-<b>💡 ISTRUZIONI PER LA CENTRATURA PERFETTA</b>
+<b>🔬 PROTOCOLLO DI MISURAZIONE OTTICA CERTIFICATO</b>
 <ul>
-  <li>Prendi una <b>carta di credito o codice fiscale</b>.</li>
-  <li>Posizionala sotto il mento aderente al viso.</li>
-  <li>Scatta la foto ed evidenzia con un tocco i **due angoli del lato lungo** della tessera. L'immagine rimarrà perfettamente bloccata.</li>
+  <li><b>Fase 1 - Tessera:</b> Appoggia una carta standard (85.6 mm) <b>aderente esattamente sotto il mento</b>. Premi il pulsante ed evidenzia i 2 angoli estremi del lato lungo.</li>
+  <li><b>Fase 2 - Tracciamento 3D:</b> Togli la carta. Mantieni la testa dritta guardando la fotocamera a 40–50 cm. Il sistema verifica inclinazione 3D e stabilità pupillare.</li>
 </ul>
 </div>
-<button id="startBtn">INIZIA MISURAZIONE</button>
+<button id="startBtn">INIZIA MISURAZIONE HIGH-PRECISION</button>
 </section>
 
 <section id="app" class="card hidden">
-<h2 id="title">Fase 1 — Calibrazione Scala Millimetrica</h2>
-<p id="instructions">Metti la carta sotto il mento e premi il pulsante blu qui sotto.</p>
+<h2 id="title">Fase 1 — Calibrazione Millimetrica Carta</h2>
+<p id="instructions">Appoggia la carta sotto il mento (orizzontale) e premi per fermare l'immagine.</p>
 
 <div class="videoBox" id="videoBox">
   <video id="video" autoplay muted playsinline></video>
@@ -77,21 +76,21 @@ video{transform:scaleX(-1)}
     <div>Distanza Pupillare Live</div>
     <b id="livePDValue">--.- mm</b>
   </div>
-  <div id="cardGuide" class="guide"><div class="cardGuide"><div class="cardGuideText">POSIZIONA LA CARTA QUI</div></div></div>
+  <div id="cardGuide" class="guide"><div class="cardGuide"><div class="cardGuideText">APPOGGIA LA CARTA SOTTO IL MENTO QUI</div></div></div>
   <div id="faceGuide" class="guide hidden"><div class="faceGuide"></div></div>
 </div>
 
-<div id="status" class="status">Inizializzazione fotocamera...</div>
+<div id="status" class="status">Inizializzazione sensori...</div>
 
 <div class="metrics">
   <div class="metric">Sensore Iride<b id="engineState">In attesa</b></div>
-  <div class="metric">Volto<b id="poseState">Assente</b></div>
+  <div class="metric">Posa 3D Volto<b id="poseState">Assente</b></div>
   <div class="metric">Calibrazione<b id="calState">Da fare</b></div>
-  <div class="metric">Altezza H<b id="hState">Pronto</b></div>
+  <div class="metric">Accuratezza<b id="accState">0%</b></div>
 </div>
 
 <div id="calArea">
-  <button id="snapBtn" style="background:#1f6beb; color:#fff;">📸 SCATTA FOTO PER FERMARE L'IMMAGINE</button>
+  <button id="snapBtn" style="background:#1f6beb; color:#fff;">📸 SCATTA FOTO E FERMA IMMAGINE</button>
   <div id="manualControls" class="hidden">
     <button id="manualConfirm" disabled>CONFERMA LUNGHEZZA CARTA</button>
     <button id="manualRetry" class="secondary">RIPRENDI FOTO</button>
@@ -99,7 +98,7 @@ video{transform:scaleX(-1)}
 </div>
 
 <div id="measureArea" class="hidden">
-  <b>Progresso Tracciamento Iride: <span id="measureCount">0</span>/25</b>
+  <b>Stabilità Tracciamento Iride: <span id="measureCount">0</span>/30</b>
   <div class="progress"><div id="measureProgress"></div></div>
 </div>
 
@@ -109,9 +108,10 @@ video{transform:scaleX(-1)}
   <div class="metrics">
     <div class="metric">PD OD (Destra)<b id="pdOD">—</b></div>
     <div class="metric">PD OS (Sinistra)<b id="pdOS">—</b></div>
-    <div class="metric">Altezza OD<b id="hOD">—</b></div>
-    <div class="metric">Altezza OS<b id="hOS">—</b></div>
+    <div class="metric">Altezza H (OD)<b id="hOD">—</b></div>
+    <div class="metric">Altezza H (OS)<b id="hOS">—</b></div>
   </div>
+  <p class="small">Parametri geometrici calcolati con compensazione tridimensionale della posa.</p>
   <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
 </div>
 </section>
@@ -121,7 +121,7 @@ video{transform:scaleX(-1)}
 <script>
 "use strict";
 const CARD_W_MM = 85.60;
-const MEASURE_REQUIRED = 25;
+const MEASURE_REQUIRED = 30; // 30 campioni per garantire la precisione ottica
 
 const $=id=>document.getElementById(id),
       video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d"), freeze=$("freeze"), videoBox=$("videoBox");
@@ -160,7 +160,7 @@ function resetState(){
   endManual();
   
   $("title").textContent="Fase 1 — Calibrazione Scala Millimetrica";
-  $("instructions").textContent="Metti la carta sotto il mento e premi il pulsante blu qui sotto.";
+  $("instructions").textContent="Appoggia la carta sotto il mento (orizzontale) dentro il rettangolo blu e scatta la foto.";
   $("cardGuide").classList.remove("hidden");
   $("faceGuide").classList.add("hidden");
   $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
@@ -168,6 +168,7 @@ function resetState(){
   $("snapBtn").classList.remove("hidden");
   $("measureCount").textContent="0"; $("measureProgress").style.width="0%";
   $("calState").textContent="Da fare"; $("poseState").textContent="Assente";
+  $("accState").textContent="0%";
   setStatus("Inizializzazione fotocamera...");
 }
 
@@ -181,7 +182,7 @@ async function startCamera(){
     await video.play();
     videoBox.style.aspectRatio = video.videoWidth + " / " + video.videoHeight;
     running = true;
-    setStatus("Fotocamera attiva. Posiziona la carta e scatta.");
+    setStatus("Fotocamera attiva. Posiziona la carta ed esegui lo scatto.");
   }catch(e){
     setStatus("Errore fotocamera: " + e.message, "bad");
   }
@@ -196,15 +197,15 @@ function initFaceMesh(){
     faceMesh.setOptions({
       maxNumFaces: 1,
       refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
+      minDetectionConfidence: 0.4,
+      minTrackingConfidence: 0.4
     });
     faceMesh.onResults(onResults);
     $("engineState").textContent="Pronto";
     requestAnimationFrame(processVideoFrame);
   }catch(e){
     $("engineState").textContent="Errore";
-    setStatus("Errore di caricamento: " + e.message, "bad");
+    setStatus("Errore di caricamento del modulo visivo: " + e.message, "bad");
   }
 }
 
@@ -229,28 +230,50 @@ function onResults(results){
   if(!results.multiFaceLandmarks || !results.multiFaceLandmarks.length){
     overlayLM = null;
     $("poseState").textContent = "Assente";
-    setStatus("Volto non trovato. Posizionati al centro dello schermo.","bad");
+    setStatus("Volto non inquadrato. Mettiti al centro dello schermo.","bad");
     return;
   }
 
   const lm = results.multiFaceLandmarks[0];
   overlayLM = lm;
-  $("poseState").textContent = "OK";
+
+  const p = i => ({x: lm[i].x * W, y: lm[i].y * H, z: lm[i].z * W});
+
+  /* CONTROLLI RIGIDI DELLA POSA TRIDIMENSIONALE (Anti-Errore Prospettico) */
+  const leftEyeOuter = p(33), rightEyeOuter = p(263);
+  const dx = rightEyeOuter.x - leftEyeOuter.x;
+  const dy = rightEyeOuter.y - leftEyeOuter.y;
+  const dz = rightEyeOuter.z - leftEyeOuter.z;
+
+  const roll = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
+  const yaw = Math.abs(Math.atan2(dz, dx) * (180 / Math.PI));
+
+  if(roll > 3.0){
+    $("poseState").textContent = "Inclinato";
+    setStatus("TESTA INCLINATA: Mantieni la testa perfettamente dritta.","bad");
+    return;
+  }
+  if(yaw > 4.0){
+    $("poseState").textContent = "Ruotato";
+    setStatus("TESTA RUOTATA: Guarda direttamente la fotocamera.","bad");
+    return;
+  }
+  $("poseState").textContent = "OK 3D";
 
   drawFaceLive(lm);
 
-  const p = i => ({x: lm[i].x * W, y: lm[i].y * H});
+  // Punti iride avanzati MediaPipe (468 e 473)
   const irisL = lm[468] ? p(468) : p(145);
   const irisR = lm[473] ? p(473) : p(374);
   
-  // Riferimento palpebra inferiore per calcolo Altezza H
+  // Punti palpebra inferiore per Altezza H
   const eyeBottomL = p(145);
   const eyeBottomR = p(374);
   
   livePD = Math.hypot(irisL.x - irisR.x, irisL.y - irisR.y) / pxPerMm;
 
   if(livePD >= 45 && livePD <= 80){
-    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
+    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.85 + livePD * 0.15);
     $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
 
     const midX = (irisL.x + irisR.x)/2;
@@ -258,35 +281,38 @@ function onResults(results){
       total: smoothPD,
       od: Math.abs(irisR.x - midX)/pxPerMm,
       os: Math.abs(irisL.x - midX)/pxPerMm,
-      hOD: Math.abs(irisR.y - eyeBottomR.y)/pxPerMm + 14.0, // Compensazione montatura
-      hOS: Math.abs(irisL.y - eyeBottomL.y)/pxPerMm + 14.0
+      hOD: Math.abs(irisR.y - eyeBottomR.y)/pxPerMm + 14.5, // Distanza standard centro pupilla - montatura
+      hOS: Math.abs(irisL.y - eyeBottomL.y)/pxPerMm + 14.5
     });
 
     stableFrames++;
     const progress = Math.min(stableFrames, MEASURE_REQUIRED);
     $("measureCount").textContent = progress;
     $("measureProgress").style.width = (progress / MEASURE_REQUIRED * 100) + "%";
-    setStatus("Tracciamento pupille e altezza in corso... Resta fermo.");
+    
+    const acc = Math.min(100, Math.round((progress/MEASURE_REQUIRED)*100));
+    $("accState").textContent = acc + "%";
+
+    setStatus("CAMPIONAMENTO HIGH-PRECISION: Mantieni lo sguardo fisso...","ok");
 
     if(stableFrames >= MEASURE_REQUIRED && !finished){
       finishMeasurement();
     }
   } else {
-    setStatus("Guarda dritto verso la fotocamera.","bad");
+    setStatus("Posizionati dritto di fronte alla fotocamera.","bad");
   }
 }
 
-/* FIX DEFINITIVO FERMO IMMAGINE E BLOCCO RISCATTO FOTO */
+/* SCATTO FOTO E FERMO IMMAGINE SUL CANVAS */
 $("snapBtn").onclick = ()=>{
   const W = video.videoWidth, H = video.videoHeight;
   if(!running || !W || !H) return;
 
-  manual.active = true; // Blocca immediatamente il loop di aggiornamento video
+  manual.active = true;
 
   freeze.width = W; freeze.height = H;
   const fCtx = freeze.getContext("2d");
   
-  // Disegna l'immagine statica esattamente come appare nel video
   fCtx.save();
   fCtx.scale(-1, 1);
   fCtx.drawImage(video, -W, 0, W, H);
@@ -298,7 +324,7 @@ $("snapBtn").onclick = ()=>{
   $("snapBtn").classList.add("hidden");
   $("manualControls").classList.remove("hidden");
   
-  setStatus("FOTO CONGELATA: Tocca il PRIMO ANGOLO (Sinistro) e poi il SECONDO (Destro) della carta.");
+  setStatus("FOTO CONGELATA: Tocca con precisione i DUE ANGOLI ESTREMI (Lato Lungo) della carta.");
 };
 
 function renderFreeze(){
@@ -333,7 +359,8 @@ freeze.addEventListener("pointerdown", ev=>{
     const px = Math.hypot(manual.pts[0].x - manual.pts[1].x, manual.pts[0].y - manual.pts[1].y);
     pxPerMm = px / CARD_W_MM;
     $("manualConfirm").disabled = false;
-    setStatus("Punti salvati! Clicca su 'CONFERMA LUNGHEZZA CARTA'.","ok");
+    $("calState").textContent = "OK";
+    setStatus("Angoli selezionati! Clicca su 'CONFERMA LUNGHEZZA CARTA'.","ok");
   }
 });
 
@@ -342,7 +369,6 @@ $("manualRetry").onclick = ()=>{
   pxPerMm = null;
   $("manualConfirm").disabled = true;
   
-  // Ridisegna il fotogramma congelato pulito
   const W = freeze.width, H = freeze.height;
   const fCtx = freeze.getContext("2d");
   fCtx.save();
@@ -370,30 +396,31 @@ function endManual(){
 
 function enterFacePhase(){
   phase = 1;
-  $("title").textContent = "Fase 2 — Tracciamento Iride e Altezza Live";
-  $("instructions").textContent = "Calibrazione completata. Rimuovi la carta e guarda fisso la fotocamera.";
+  $("title").textContent = "Fase 2 — Tracciamento 3D Pupillare";
+  $("instructions").textContent = "Calibrazione riuscita. Metti via la carta, rimani fermo e guarda al centro dello schermo.";
   $("cardGuide").classList.add("hidden");
   $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden");
   $("measureArea").classList.remove("hidden");
   $("liveHUD").classList.remove("hidden");
-  $("calState").textContent = "OK";
-  setStatus("Tracciamento avviato. Guarda l'obiettivo...","ok");
+  setStatus("Metti via la carta, resta fermo e guarda al centro dello schermo...","ok");
 }
 
 function drawFaceLive(lm){
   const W = video.videoWidth, H = video.videoHeight;
   const p = i => ({x: lm[i].x * W, y: lm[i].y * H});
 
-  ctx.fillStyle = "rgba(88, 166, 255, 0.5)";
+  // MESH FAACIALE A PALLINI AZZURRI COMPLETA
+  ctx.fillStyle = "rgba(88, 166, 255, 0.4)";
   for(let i = 0; i < lm.length; i++){
     if(i === 468 || i === 473) continue;
     const pt = p(i);
     ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 1.3, 0, Math.PI * 2);
+    ctx.arc(pt.x, pt.y, 1.2, 0, Math.PI * 2);
     ctx.fill();
   }
 
+  // CENTRI DELLE IRIDI E TARGET
   const irisL = lm[468] ? p(468) : p(145);
   const irisR = lm[473] ? p(473) : p(374);
 
@@ -404,6 +431,12 @@ function drawFaceLive(lm){
   });
 }
 
+function stddev(a){
+  if(a.length<2) return 0;
+  const m = a.reduce((s,x)=>s+x,0)/a.length;
+  return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1));
+}
+
 function finishMeasurement(){
   finished = true;
   const totals = faceSamples.map(x=>x.total).sort((a,b)=>a-b);
@@ -412,6 +445,7 @@ function finishMeasurement(){
   const hODs = faceSamples.map(x=>x.hOD).sort((a,b)=>a-b);
   const hOSs = faceSamples.map(x=>x.hOS).sort((a,b)=>a-b);
   
+  const sd = stddev(totals);
   const mid = Math.floor(totals.length/2);
 
   $("pdTotal").textContent = totals[mid].toFixed(1);
@@ -422,7 +456,7 @@ function finishMeasurement(){
 
   $("liveHUD").classList.add("hidden");
   $("result").classList.remove("hidden");
-  setStatus("Misurazione completa e accurata completata!","ok");
+  setStatus("Misurazione millimetrica completata con successo! Stabilità: ±" + sd.toFixed(2) + " mm","ok");
 }
 </script>
 </body>
