@@ -196,7 +196,7 @@ function initFaceMesh(){
     });
     faceMesh.setOptions({
       maxNumFaces: 1,
-      refineLandmarks: true, // Fondamentale per estrarre le pupille (punti 468 e 473)
+      refineLandmarks: true,
       minDetectionConfidence: 0.3,
       minTrackingConfidence: 0.3
     });
@@ -230,7 +230,7 @@ function onResults(results){
   if(!results.multiFaceLandmarks || !results.multiFaceLandmarks.length){
     overlayLM = null;
     $("poseState").textContent = "Assente";
-    setStatus("Volto non inquadrato. Mettiti al centro dello schermo e guarda la fotocamera.","bad");
+    setStatus("Volto non inquadrato. Guarda fisso verso la fotocamera.","bad");
     return;
   }
 
@@ -239,7 +239,7 @@ function onResults(results){
 
   const p = i => ({x: lm[i].x * W, y: lm[i].y * H, z: (lm[i].z || 0) * W});
 
-  /* CONTROLLO POSA TRIDIMENSIONALE */
+  /* CONTROLLI RIGIDI DELLA POSA 3D */
   const leftEyeOuter = p(33), rightEyeOuter = p(263);
   const dx = rightEyeOuter.x - leftEyeOuter.x;
   const dy = rightEyeOuter.y - leftEyeOuter.y;
@@ -248,12 +248,12 @@ function onResults(results){
   const roll = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
   const yaw = Math.abs(Math.atan2(dz, dx) * (180 / Math.PI));
 
-  if(roll > 4.5){
+  if(roll > 5.0){
     $("poseState").textContent = "Inclinato";
     setStatus("TESTA INCLINATA: Mantieni la testa dritta.","bad");
     return;
   }
-  if(yaw > 6.0){
+  if(yaw > 7.0){
     $("poseState").textContent = "Ruotato";
     setStatus("TESTA RUOTATA: Guarda direttamente la fotocamera.","bad");
     return;
@@ -262,24 +262,19 @@ function onResults(results){
 
   drawFaceLive(lm);
 
-  // Rilevamento avanzato iride MediaPipe (468: centro sinistro, 473: centro destro)
-  let irisL, irisR;
-  if(lm.length > 473 && lm[468] && lm[473]){
-    irisL = p(468);
-    irisR = p(473);
-  } else {
-    // Fallback automatico sugli angoli interni degli occhi
-    irisL = p(145);
-    irisR = p(374);
-  }
+  // Selezione robusta del centro iride MediaPipe con fallback immediato
+  let irisL = (lm.length > 468 && lm[468]) ? p(468) : p(145);
+  let irisR = (lm.length > 473 && lm[473]) ? p(473) : p(374);
   
   const eyeBottomL = p(145);
   const eyeBottomR = p(374);
   
-  livePD = Math.hypot(irisL.x - irisR.x, irisL.y - irisR.y) / pxPerMm;
+  const currentPxDist = Math.hypot(irisL.x - irisR.x, irisL.y - irisR.y);
+  livePD = currentPxDist / pxPerMm;
 
-  if(livePD >= 40 && livePD <= 85){
-    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
+  // Intervallo PD valido dinamico per prevenire blocchi di calcolo
+  if(livePD >= 30 && livePD <= 95){
+    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.75 + livePD * 0.25);
     $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
 
     const midX = (irisL.x + irisR.x)/2;
@@ -299,13 +294,13 @@ function onResults(results){
     const acc = Math.min(100, Math.round((progress/MEASURE_REQUIRED)*100));
     $("accState").textContent = acc + "%";
 
-    setStatus("IRIDE RILEVATA: Resta fermo qualche secondo...","ok");
+    setStatus("AGGANCIAMENTO IRIDE RIUSCITO: Resta fermo...","ok");
 
     if(stableFrames >= MEASURE_REQUIRED && !finished){
       finishMeasurement();
     }
   } else {
-    setStatus("Posizionati dritto di fronte alla fotocamera.","bad");
+    setStatus("Inquadra il volto al centro della fotocamera.","bad");
   }
 }
 
@@ -417,7 +412,6 @@ function drawFaceLive(lm){
   const W = video.videoWidth, H = video.videoHeight;
   const p = i => ({x: lm[i].x * W, y: lm[i].y * H});
 
-  // Pallini azzurri su tutto il volto
   ctx.fillStyle = "rgba(88, 166, 255, 0.45)";
   for(let i = 0; i < lm.length; i++){
     if(i === 468 || i === 473) continue;
@@ -427,20 +421,16 @@ function drawFaceLive(lm){
     ctx.fill();
   }
 
-  // Centri pupille e mirino verde ad alta visibilità
   const irisL = (lm.length > 468 && lm[468]) ? p(468) : p(145);
   const irisR = (lm.length > 473 && lm[473]) ? p(473) : p(374);
 
   [irisL, irisR].forEach(pt=>{
-    // Mirino Esterno
     ctx.strokeStyle = "#3fb950"; ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(pt.x, pt.y, 11, 0, Math.PI*2); ctx.stroke();
     
-    // Punto centrale
     ctx.fillStyle = "#3fb950"; 
     ctx.beginPath(); ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI*2); ctx.fill();
 
-    // Linee a croce (Targeting)
     ctx.strokeStyle = "rgba(63, 185, 80, 0.7)"; ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(pt.x - 16, pt.y); ctx.lineTo(pt.x + 16, pt.y);
