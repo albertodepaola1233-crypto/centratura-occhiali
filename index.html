@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Misurazione Centratura Occhiali Live</title>
-<!-- Caricamento diretto librerie MediaPipe -->
+<!-- Librerie MediaPipe caricate in modo sicuro -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <style>
@@ -85,7 +85,7 @@ video{transform:scaleX(-1)}
 <div id="status" class="status">Inizializzazione fotocamera...</div>
 
 <div class="metrics">
-  <div class="metric">Motore Iride<b id="engineState">Caricamento...</b></div>
+  <div class="metric">Motore Iride<b id="engineState">In attesa</b></div>
   <div class="metric">Volto<b id="poseState">Assente</b></div>
   <div class="metric">Calibrazione<b id="calState">Da fare</b></div>
 </div>
@@ -99,3 +99,323 @@ video{transform:scaleX(-1)}
 </div>
 
 <div id="measureArea" class="hidden">
+  <b>Progresso Tracciamento Iride: <span id="measureCount">0</span>/25</b>
+  <div class="progress"><div id="measureProgress"></div></div>
+</div>
+
+<div id="result" class="result hidden">
+  <div class="small">Distanza Pupillare (PD) Totale</div>
+  <div class="big"><span id="pdTotal">—</span> mm</div>
+  <div class="metrics">
+    <div class="metric">PD OD (Destra)<b id="pdOD">—</b></div>
+    <div class="metric">PD OS (Sinistra)<b id="pdOS">—</b></div>
+    <div class="metric">Qualità Misura<b id="quality">Eccellente</b></div>
+  </div>
+  <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
+</div>
+</section>
+
+</div>
+
+<script>
+"use strict";
+const CARD_W_MM = 85.60;
+const MEASURE_REQUIRED = 25;
+
+const $=id=>document.getElementById(id),
+      video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d"), freeze=$("freeze"), videoBox=$("videoBox");
+
+let stream=null, running=false, rafId=0, phase=0,
+    faceMesh=null, pxPerMm=null,
+    faceSamples=[], stableFrames=0, finished=false,
+    livePD=0, smoothPD=0, overlayLM=null,
+    manual={active:false, pts:[]};
+
+function setStatus(msg,type=""){
+  const el=$("status"); el.className="status"+(type?" "+type:""); el.textContent=msg;
+}
+
+$("startBtn").onclick=async()=>{
+  if(window.location.protocol === 'file:'){
+    alert("ATTENZIONE: Apri questa pagina tramite un server web (HTTPS o localhost). I browser bloccano la fotocamera se si apre il file direttamente.");
+  }
+  $("intro").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  resetState();
+  await startCamera();
+  initFaceMesh();
+};
+
+$("repeatBtn").onclick=async()=>{
+  $("result").classList.add("hidden");
+  resetState();
+  await startCamera();
+};
+
+function resetState(){
+  running=false;
+  if(rafId) cancelAnimationFrame(rafId);
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  phase=0; pxPerMm=null;
+  faceSamples=[]; stableFrames=0; finished=false;
+  livePD=0; smoothPD=0; overlayLM=null;
+  endManual();
+  
+  $("title").textContent="Fase 1 — Calibrazione Carta";
+  $("instructions").textContent="Inquadra la carta nel rettangolo blu sotto il mento e scatta la foto.";
+  $("cardGuide").classList.remove("hidden");
+  $("faceGuide").classList.add("hidden");
+  $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
+  $("liveHUD").classList.add("hidden");
+  $("snapBtn").classList.remove("hidden");
+  $("measureCount").textContent="0"; $("measureProgress").style.width="0%";
+  $("calState").textContent="Da fare"; $("poseState").textContent="Assente";
+  setStatus("Inizializzazione fotocamera...");
+}
+
+async function startCamera(){
+  try{
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error("L'API Fotocamera non è supportata da questo browser o la pagina non è servita in HTTPS.");
+    }
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    video.srcObject = stream;
+    await video.play();
+    videoBox.style.aspectRatio = video.videoWidth + " / " + video.videoHeight;
+    running = true;
+    setStatus("Fotocamera attiva. Posiziona la carta ed esegui lo scatto.");
+  }catch(e){
+    setStatus("Errore fotocamera: " + e.message, "bad");
+  }
+}
+
+function initFaceMesh(){
+  $("engineState").textContent="Caricamento";
+  try{
+    if(typeof FaceMesh === 'undefined'){
+      throw new Error("Librerie MediaPipe non caricate. Controlla la connessione internet.");
+    }
+    faceMesh = new FaceMesh({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+    });
+    faceMesh.setOptions({
+      maxNumFaces: 1,
+      refineLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+    faceMesh.onResults(onResults);
+    $("engineState").textContent="Pronto";
+    
+    requestAnimationFrame(processVideoFrame);
+  }catch(e){
+    $("engineState").textContent="Errore";
+    setStatus("Errore tracciatore: " + e.message, "bad");
+  }
+}
+
+async function processVideoFrame(){
+  if(running && video.readyState >= 2){
+    if(phase === 1 && faceMesh){
+      try {
+        await faceMesh.send({image: video});
+      } catch(e) {}
+    }
+  }
+  if(running) requestAnimationFrame(processVideoFrame);
+}
+
+function onResults(results){
+  if(!running || phase !== 1) return;
+  
+  const W = video.videoWidth, H = video.videoHeight;
+  if(canvas.width !== W || canvas.height !== H){ canvas.width = W; canvas.height = H; }
+  ctx.clearRect(0,0,W,H);
+
+  if(!results.multiFaceLandmarks || !results.multiFaceLandmarks.length){
+    overlayLM = null;
+    $("poseState").textContent = "Assente";
+    setStatus("Volto non inquadrato. Mettiti al centro dello schermo.","bad");
+    return;
+  }
+
+  const lm = results.multiFaceLandmarks[0];
+  overlayLM = lm;
+  $("poseState").textContent = "OK";
+
+  drawFaceLive(lm);
+
+  const p = i => ({x: lm[i].x * W, y: lm[i].y * H});
+  const irisL = lm[468] ? p(468) : p(145);
+  const irisR = lm[473] ? p(473) : p(374);
+  
+  livePD = Math.hypot(irisL.x - irisR.x, irisL.y - irisR.y) / pxPerMm;
+
+  if(livePD >= 45 && livePD <= 80){
+    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
+    $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
+
+    const midX = (irisL.x + irisR.x)/2;
+    faceSamples.push({
+      total: smoothPD,
+      od: Math.abs(irisR.x - midX)/pxPerMm,
+      os: Math.abs(irisL.x - midX)/pxPerMm
+    });
+
+    stableFrames++;
+    const progress = Math.min(stableFrames, MEASURE_REQUIRED);
+    $("measureCount").textContent = progress;
+    $("measureProgress").style.width = (progress / MEASURE_REQUIRED * 100) + "%";
+    setStatus("Acquisizione misura pupillare in corso... Resta fermo.");
+
+    if(stableFrames >= MEASURE_REQUIRED && !finished){
+      finishMeasurement();
+    }
+  } else {
+    setStatus("Guarda fisso l'obiettivo della fotocamera.","bad");
+  }
+}
+
+/* Modalità Calibrazione Fotografica */
+$("snapBtn").onclick = ()=>{
+  const W = video.videoWidth, H = video.videoHeight;
+  if(!running || !W || !H) {
+    setStatus("Fotocamera non ancora pronta. Attendi qualche secondo.", "bad");
+    return;
+  }
+
+  freeze.width = W; freeze.height = H;
+  const fCtx = freeze.getContext("2d");
+  
+  fCtx.save();
+  fCtx.scale(-1, 1);
+  fCtx.drawImage(video, -W, 0, W, H);
+  fCtx.restore();
+
+  manual = {active:true, pts:[]};
+  freeze.classList.remove("hidden");
+  $("cardGuide").classList.add("hidden");
+  $("snapBtn").classList.add("hidden");
+  $("manualControls").classList.remove("hidden");
+  
+  renderFreeze();
+  setStatus("FOTO BLOCCATA: Tocca i DUE ANGOLI ESTREMI (Lato Lungo) della carta.");
+};
+
+function renderFreeze(){
+  const fCtx = freeze.getContext("2d"), W = freeze.width, H = freeze.height;
+  fCtx.save();
+  fCtx.scale(-1, 1);
+  fCtx.drawImage(video, -W, 0, W, H);
+  fCtx.restore();
+
+  if(manual.pts.length === 2){
+    fCtx.strokeStyle = "#3fb950"; fCtx.lineWidth = 4;
+    fCtx.beginPath();
+    fCtx.moveTo(manual.pts[0].x, manual.pts[0].y);
+    fCtx.lineTo(manual.pts[1].x, manual.pts[1].y);
+    fCtx.stroke();
+  }
+
+  manual.pts.forEach((p, idx)=>{
+    fCtx.fillStyle = idx === 0 ? "#58a6ff" : "#3fb950";
+    fCtx.beginPath(); fCtx.arc(p.x, p.y, 9, 0, Math.PI*2); fCtx.fill();
+    fCtx.strokeStyle = "#ffffff"; fCtx.lineWidth = 2; fCtx.stroke();
+  });
+}
+
+freeze.addEventListener("pointerdown", ev=>{
+  if(!manual.active || manual.pts.length >= 2) return;
+  const r = freeze.getBoundingClientRect();
+  const x = (ev.clientX - r.left) * (freeze.width / r.width);
+  const y = (ev.clientY - r.top) * (freeze.height / r.height);
+  manual.pts.push({x, y});
+  renderFreeze();
+
+  if(manual.pts.length === 2){
+    const px = Math.hypot(manual.pts[0].x - manual.pts[1].x, manual.pts[0].y - manual.pts[1].y);
+    pxPerMm = px / CARD_W_MM;
+    $("manualConfirm").disabled = false;
+    setStatus("Angoli selezionati! Clicca 'CONFERMA LUNGHEZZA CARTA'.","ok");
+  }
+});
+
+$("manualRetry").onclick = ()=>{
+  manual.pts = [];
+  pxPerMm = null;
+  $("manualConfirm").disabled = true;
+  renderFreeze();
+  setStatus("Tocca i due angoli del lato lungo della carta.");
+};
+
+$("manualConfirm").onclick = ()=>{
+  if(!manual.active || !pxPerMm) return;
+  endManual();
+  enterFacePhase();
+};
+
+function endManual(){
+  manual = {active:false, pts:[]};
+  freeze.classList.add("hidden");
+  $("manualControls").classList.add("hidden");
+  $("snapBtn").classList.remove("hidden");
+  $("manualConfirm").disabled = true;
+}
+
+function enterFacePhase(){
+  phase = 1;
+  $("title").textContent = "Fase 2 — Tracciamento Iride Live";
+  $("instructions").textContent = "Calibrazione completata. Metti via la carta e guarda al centro dello schermo.";
+  $("cardGuide").classList.add("hidden");
+  $("faceGuide").classList.remove("hidden");
+  $("calArea").classList.add("hidden");
+  $("measureArea").classList.remove("hidden");
+  $("liveHUD").classList.remove("hidden");
+  $("calState").textContent = "OK";
+  setStatus("Tracciamento avviato. Guarda l'obiettivo...","ok");
+}
+
+function drawFaceLive(lm){
+  const W = video.videoWidth, H = video.videoHeight;
+  const p = i => ({x: lm[i].x * W, y: lm[i].y * H});
+
+  ctx.fillStyle = "rgba(88, 166, 255, 0.6)";
+  for(let i = 0; i < lm.length; i++){
+    if(i === 468 || i === 473) continue;
+    const pt = p(i);
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const irisL = lm[468] ? p(468) : p(145);
+  const irisR = lm[473] ? p(473) : p(374);
+
+  [irisL, irisR].forEach(pt=>{
+    ctx.strokeStyle = "#3fb950"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(pt.x, pt.y, 7, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = "#3fb950"; ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI*2); ctx.fill();
+  });
+}
+
+function finishMeasurement(){
+  finished = true;
+  const totals = faceSamples.map(x=>x.total).sort((a,b)=>a-b);
+  const ods = faceSamples.map(x=>x.od).sort((a,b)=>a-b);
+  const oss = faceSamples.map(x=>x.os).sort((a,b)=>a-b);
+  const mid = Math.floor(totals.length/2);
+
+  $("pdTotal").textContent = totals[mid].toFixed(1);
+  $("pdOD").textContent = ods[mid].toFixed(1) + " mm";
+  $("pdOS").textContent = oss[mid].toFixed(1) + " mm";
+
+  $("liveHUD").classList.add("hidden");
+  $("result").classList.remove("hidden");
+  setStatus("Misurazione completata con successo!","ok");
+}
+</script>
+</body>
+</html>
