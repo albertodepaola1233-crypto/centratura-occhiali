@@ -123,8 +123,7 @@ In caso di problemi visivi o tolleranze errate dopo la ricezione dell'occhiale, 
     <div class="metric">Altezza H (OD)<b id="hOD">—</b></div>
     <div class="metric">Altezza H (OS)<b id="hOS">—</b></div>
   </div>
-  <p class="small">Misurazione ad alta precisione completata con successo.</p>
-  <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
+  <p class="small">Misurazione ad alta precisione completata con successo.<br><b>Per ripetere il test, aggiorna la pagina.</b></p>
 </div>
 </section>
 
@@ -154,12 +153,6 @@ $("startBtn").onclick=async()=>{
   resetState();
   await startCamera();
   await initFaceMesh();
-};
-
-$("repeatBtn").onclick=async()=>{
-  $("result").classList.add("hidden");
-  resetState();
-  await startCamera();
 };
 
 function resetState(){
@@ -218,8 +211,8 @@ async function initFaceMesh(){
       faceMesh.setOptions({
         maxNumFaces: 1,
         refineLandmarks: true,
-        minDetectionConfidence: 0.25,
-        minTrackingConfidence: 0.25
+        minDetectionConfidence: 0.3,
+        minTrackingConfidence: 0.3
       });
       faceMesh.onResults(onResults);
       $("engineState").textContent="Pronto";
