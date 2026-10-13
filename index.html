@@ -214,8 +214,8 @@ function initFaceMesh(){
       faceMesh.setOptions({
         maxNumFaces: 1,
         refineLandmarks: true,
-        minDetectionConfidence: 0.35,
-        minTrackingConfidence: 0.35
+        minDetectionConfidence: 0.3,
+        minTrackingConfidence: 0.3
       });
       faceMesh.onResults(onResults);
       $("engineState").textContent="Pronto";
@@ -245,13 +245,13 @@ function onResults(results){
   if(!running || phase !== 1) return;
   
   const W = video.videoWidth, H = video.videoHeight;
-  if(canvas.width !== W || canvas.height!==H){ canvas.width = W; canvas.height = H; }
+  if(canvas.width !== W || canvas.height !== H){ canvas.width = W; canvas.height = H; }
   ctx.clearRect(0,0,W,H);
 
   if(!results.multiFaceLandmarks || !results.multiFaceLandmarks.length){
     overlayLM = null;
     $("poseState").textContent = "Assente";
-    setStatus("Avvicinati o allontanati finché il viso non rientra nel cerchio verde.","bad");
+    setStatus("Inquadra il viso al centro della fotocamera.","bad");
     return;
   }
 
@@ -260,19 +260,7 @@ function onResults(results){
 
   const p = i => ({x: lm[i].x * W, y: lm[i].y * H, z: (lm[i].z || 0) * W});
 
-  const nose = p(1);
-  const centerX = W / 2;
-  const centerY = H / 2;
-  const allowedRadius = W * 0.30;
-
-  const distanceFromCenter = Math.hypot(nose.x - centerX, nose.y - centerY);
-  if(distanceFromCenter > allowedRadius) {
-    $("poseState").textContent = "Fuori Centro";
-    setStatus("Avvicinati o spostati al centro del cerchio verde per avviare la scansione.","bad");
-    drawFaceLive(lm, false);
-    return;
-  }
-
+  /* CONTROLLI DI POSA TRIDIMENSIONALE */
   const leftEyeOuter = p(33), rightEyeOuter = p(263);
   const dx = rightEyeOuter.x - leftEyeOuter.x;
   const dy = rightEyeOuter.y - leftEyeOuter.y;
@@ -281,13 +269,13 @@ function onResults(results){
   const roll = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
   const yaw = Math.abs(Math.atan2(dz, dx) * (180 / Math.PI));
 
-  if(roll > 5.0){
+  if(roll > 6.0){
     $("poseState").textContent = "Inclinato";
     setStatus("TESTA INCLINATA: Mantieni la testa dritta.","bad");
     drawFaceLive(lm, false);
     return;
   }
-  if(yaw > 7.0){
+  if(yaw > 8.0){
     $("poseState").textContent = "Ruotato";
     setStatus("TESTA RUOTATA: Guarda direttamente la fotocamera.","bad");
     drawFaceLive(lm, false);
@@ -306,7 +294,7 @@ function onResults(results){
   const currentPxDist = Math.hypot(irisL.x - irisR.x, irisL.y - irisR.y);
   livePD = currentPxDist / pxPerMm;
 
-  if(livePD >= 30 && livePD <= 95){
+  if(livePD >= 25 && livePD <= 100){
     smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
     $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
 
@@ -333,7 +321,7 @@ function onResults(results){
       finishMeasurement();
     }
   } else {
-    setStatus("Avvicinati o allontanati leggermente per stabilizzare la misura.","bad");
+    setStatus("Avvicinati o allontanati leggermente per rientrare nella scala corretta.","bad");
   }
 }
 
