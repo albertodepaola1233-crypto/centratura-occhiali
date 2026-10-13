@@ -17,6 +17,7 @@ p, ul{line-height:1.5;color:#8b949e;margin-top:6px;margin-bottom:12px}
 ul{padding-left:20px}
 li{margin-bottom:6px}
 .warning{background:rgba(210,153,34,0.15);border:1px solid #d29922;border-radius:14px;padding:16px;margin:14px 0;color:#e3b341}
+.axisWarning{background:rgba(248,81,73,0.15);border:1px solid #da3633;border-radius:12px;padding:12px;margin:10px 0;color:#f85149;font-weight:bold;text-align:center;font-size:14px}
 .disclaimer{background:rgba(248,81,73,0.1);border:1px solid #da3633;border-radius:14px;padding:16px;margin:16px 0;font-size:13px;line-height:1.6;color:#f85149}
 .disclaimer b{color:#ff7b72}
 button{border:0;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:700;background:#238636;color:#fff;cursor:pointer;margin:4px 0;transition:all .2s;width:100%}
@@ -57,19 +58,19 @@ video{transform:scaleX(-1)}
 <section id="intro" class="card">
 <h1>Misurazione Centratura Occhiali Online</h1>
 <div class="warning">
-<b>💡 ISTRUZIONI DI PROCEDURA</b>
+<b>💡 REGOLE FONDAMENTALI DI POSIZIONAMENTO</b>
 <ul>
-  <li><b>Fase 1 (Tessera):</b> Posiziona una carta rigida (Carta di Credito o Codice Fiscale da 85.6 mm) aderente sotto il mento. Scatta la foto e tocca i due angoli estremi del lato lungo.</li>
-  <li><b>Fase 2 (Iride):</b> Rimuovi la carta, resta perfettamente fermo e guarda fisso la fotocamera. Il sistema rileverà la Distanza Pupillare e le Altezze di Centratura.</li>
+  <li><b>Mantenimento dell'asse:</b> Sia prima di scattare che durante la scansione dell'iride, <b>non devi assolutamente allontanarti o avvicinarti</b> alla fotocamera. La distanza dal dispositivo deve rimanere fissa (circa 40-50 cm).</li>
+  <li><b>Fase 1 (Tessera):</b> Posiziona una carta standard (85.6 mm) aderente sotto il mento. Scatta la foto e tocca i due angoli estremi del lato lungo.</li>
+  <li><b>Fase 2 (Iride):</b> Rimuovi la carta, posiziona il viso nel cerchio verde e resta immobile sullo stesso asse.</li>
 </ul>
 </div>
 
 <div class="disclaimer">
-<b>⚠️ CONDIZIONI DEL SERVIZIO E NOTE DI RESPONSABILITÀ</b><br>
-Utilizzando questo strumento digitale ti affidi a questa misurazione automatizzata per approfittare delle offerte e dei prezzi del nostro sito. Trattandosi di un sistema digitale eseguito autonomamente dall'utente, <b>non possiamo assicurare al 100% una centratura perfetta</b>.<br><br>
-In caso di incongruenze o problematiche visive dopo l'arrivo dell'occhiale, <b>non ci riteniamo responsabili per alcun problema riscontrato</b>, specialmente se non sono state rispettate rigorosamente le linee guida indicate.<br><br>
-In caso di errore, l'unica soluzione disponibile sarà rispedire la montatura acquistata presso i nostri laboratori e richiedere la lavorazione di una nuova coppia di lenti a carico del cliente.<br><br>
-<b>Consiglio:</b> Per prescrizioni complesse, lenti progressive elevate, o in caso di dubbi, ti invitiamo a visitare una delle nostre sedi fisiche per una centratura manuale eseguita dai nostri ottici esperti.
+<b>⚠️ NOTE LEGALI E CONDIZIONI DI SERVIZIO</b><br>
+Questo strumento digitale viene fornito per consentirti di usufruire dei prezzi vantaggiosi del nostro sito. Trattandosi di una misurazione autonoma, <b>non possiamo assicurare al 100% una centratura ottica perfetta</b>.<br><br>
+In caso di problemi visivi o tolleranze errate dopo la ricezione dell'occhiale, <b>non ci riterremo responsabili</b>, in particolare se non sono state seguite con precisione le linee guida (incluso il mantenimento dello stesso asse di distanza). L'unica soluzione applicabile sarà la rispedizione della montatura e la ripetizione delle sole lenti a nuovo costo.<br><br>
+<b>Raccomandazione:</b> Per prescrizioni complesse, lenti progressive o in caso di dubbi sulla procedura, ti consigliamo caldamente di recarti in una delle nostre sedi fisiche per una centratura eseguita da un ottico professionista.
 </div>
 
 <button id="startBtn">INIZIA MISURAZIONE</button>
@@ -78,6 +79,7 @@ In caso di errore, l'unica soluzione disponibile sarà rispedire la montatura ac
 <section id="app" class="card hidden">
 <h2 id="title">Fase 1 — Calibrazione Scala Millimetrica</h2>
 <p id="instructions">Appoggia la carta sotto il mento (orizzontale) dentro il rettangolo blu e scatta la foto.</p>
+<div class="axisWarning">🚨 ATTENZIONE: Mantieni lo stesso asse! Non avvicinarti e non allontanarti dalla fotocamera.</div>
 
 <div class="videoBox" id="videoBox">
   <video id="video" autoplay muted playsinline></video>
@@ -109,7 +111,7 @@ In caso di errore, l'unica soluzione disponibile sarà rispedire la montatura ac
 </div>
 
 <div id="measureArea" class="hidden">
-  <b>Stabilità Tracciamento Iride: <span id="measureCount">0</span>/25</b>
+  <b>Stabilità Tracciamento Iride: <span id="measureCount">0</span>/30</b>
   <div class="progress"><div id="measureProgress"></div></div>
 </div>
 
@@ -122,7 +124,7 @@ In caso di errore, l'unica soluzione disponibile sarà rispedire la montatura ac
     <div class="metric">Altezza H (OD)<b id="hOD">—</b></div>
     <div class="metric">Altezza H (OS)<b id="hOS">—</b></div>
   </div>
-  <p class="small">Misurazione completata. I dati verranno applicati al tuo ordine.</p>
+  <p class="small">Misurazione ad alta precisione completata con successo.</p>
   <button id="repeatBtn" class="secondary">RIPETI MISURAZIONE</button>
 </div>
 </section>
@@ -132,7 +134,7 @@ In caso di errore, l'unica soluzione disponibile sarà rispedire la montatura ac
 <script>
 "use strict";
 const CARD_W_MM = 85.60;
-const MEASURE_REQUIRED = 25;
+const MEASURE_REQUIRED = 30;
 
 const $=id=>document.getElementById(id),
       video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d"), freeze=$("freeze"), videoBox=$("videoBox");
@@ -208,8 +210,8 @@ function initFaceMesh(){
     faceMesh.setOptions({
       maxNumFaces: 1,
       refineLandmarks: true,
-      minDetectionConfidence: 0.3,
-      minTrackingConfidence: 0.3
+      minDetectionConfidence: 0.35,
+      minTrackingConfidence: 0.35
     });
     faceMesh.onResults(onResults);
     $("engineState").textContent="Pronto";
@@ -241,7 +243,7 @@ function onResults(results){
   if(!results.multiFaceLandmarks || !results.multiFaceLandmarks.length){
     overlayLM = null;
     $("poseState").textContent = "Assente";
-    setStatus("Volto non inquadrato. Guarda fisso verso la fotocamera.","bad");
+    setStatus("Posiziona il viso all'interno del cerchio verde sullo stesso asse.","bad");
     return;
   }
 
@@ -259,14 +261,14 @@ function onResults(results){
   const roll = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
   const yaw = Math.abs(Math.atan2(dz, dx) * (180 / Math.PI));
 
-  if(roll > 5.0){
+  if(roll > 4.5){
     $("poseState").textContent = "Inclinato";
     setStatus("TESTA INCLINATA: Mantieni la testa dritta.","bad");
     return;
   }
-  if(yaw > 7.0){
+  if(yaw > 6.0){
     $("poseState").textContent = "Ruotato";
-    setStatus("TESTA RUOTATA: Guarda direttamente la fotocamera.","bad");
+    setStatus("TESTA RUOTATA: Guarda direttamente la fotocamera senza girarti.","bad");
     return;
   }
   $("poseState").textContent = "OK 3D";
@@ -283,7 +285,7 @@ function onResults(results){
   livePD = currentPxDist / pxPerMm;
 
   if(livePD >= 30 && livePD <= 95){
-    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.75 + livePD * 0.25);
+    smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
     $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
 
     const midX = (irisL.x + irisR.x)/2;
@@ -303,13 +305,13 @@ function onResults(results){
     const acc = Math.min(100, Math.round((progress/MEASURE_REQUIRED)*100));
     $("accState").textContent = acc + "%";
 
-    setStatus("AGGANCIAMENTO IRIDE RIUSCITO: Resta fermo...","ok");
+    setStatus("MISURAZIONE IN CORSO: Non muovere l'asse, resta immobile...","ok");
 
     if(stableFrames >= MEASURE_REQUIRED && !finished){
       finishMeasurement();
     }
   } else {
-    setStatus("Inquadra il volto al centro della fotocamera.","bad");
+    setStatus("Non allontanarti e non avvicinarti: mantieni la distanza iniziale.","bad");
   }
 }
 
@@ -407,13 +409,13 @@ function endManual(){
 function enterFacePhase(){
   phase = 1;
   $("title").textContent = "Fase 2 — Tracciamento Iride Live";
-  $("instructions").textContent = "Calibrazione riuscita. Metti via la carta, resta fermo e guarda al centro dello schermo.";
+  $("instructions").textContent = "Calibrazione riuscita. Metti via la carta, resta fermo sullo stesso asse e guarda al centro.";
   $("cardGuide").classList.add("hidden");
   $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden");
   $("measureArea").classList.remove("hidden");
   $("liveHUD").classList.remove("hidden");
-  setStatus("Metti via la carta, resta fermo e guarda al centro dello schermo...","ok");
+  setStatus("Metti via la carta, non cambiare distanza dall'asse e guarda al centro...","ok");
 }
 
 function drawFaceLive(lm){
