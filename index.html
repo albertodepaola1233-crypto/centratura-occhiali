@@ -153,7 +153,7 @@ $("startBtn").onclick=async()=>{
   $("app").classList.remove("hidden");
   resetState();
   await startCamera();
-  initFaceMesh();
+  await initFaceMesh();
 };
 
 $("repeatBtn").onclick=async()=>{
@@ -208,7 +208,7 @@ async function startCamera(){
   }
 }
 
-function initFaceMesh(){
+async function initFaceMesh(){
   if(!faceMesh){
     $("engineState").textContent="Caricamento";
     try{
@@ -218,8 +218,8 @@ function initFaceMesh(){
       faceMesh.setOptions({
         maxNumFaces: 1,
         refineLandmarks: true,
-        minDetectionConfidence: 0.3,
-        minTrackingConfidence: 0.3
+        minDetectionConfidence: 0.25,
+        minTrackingConfidence: 0.25
       });
       faceMesh.onResults(onResults);
       $("engineState").textContent="Pronto";
@@ -272,13 +272,13 @@ function onResults(results){
   const roll = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
   const yaw = Math.abs(Math.atan2(dz, dx) * (180 / Math.PI));
 
-  if(roll > 6.0){
+  if(roll > 7.0){
     $("poseState").textContent = "Inclinato";
     setStatus("TESTA INCLINATA: Mantieni la testa dritta.","bad");
     drawFaceLive(lm, false);
     return;
   }
-  if(yaw > 8.0){
+  if(yaw > 10.0){
     $("poseState").textContent = "Ruotato";
     setStatus("TESTA RUOTATA: Guarda direttamente la fotocamera.","bad");
     drawFaceLive(lm, false);
@@ -297,7 +297,7 @@ function onResults(results){
   const currentPxDist = Math.hypot(irisL.x - irisR.x, irisL.y - irisR.y);
   livePD = currentPxDist / pxPerMm;
 
-  if(livePD >= 25 && livePD <= 100){
+  if(livePD >= 20 && livePD <= 110){
     smoothPD = smoothPD === 0 ? livePD : (smoothPD * 0.8 + livePD * 0.2);
     $("livePDValue").textContent = smoothPD.toFixed(1) + " mm";
 
@@ -426,7 +426,7 @@ function enterFacePhase(){
   $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden");
   $("measureArea").classList.remove("hidden");
-  $("liveHUD").classList.add("hidden");
+  $("liveHUD").classList.remove("hidden");
   setStatus("Entra nel cerchio verde con il viso per avviare la scansione...","ok");
 }
 
