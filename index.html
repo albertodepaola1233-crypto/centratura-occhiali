@@ -179,11 +179,14 @@ function resetState(){
   $("instructions").textContent="Appoggia la carta sotto il mento (orizzontale) dentro il rettangolo blu e scatta la foto.";
   $("cardGuide").classList.remove("hidden");
   $("faceGuide").classList.add("hidden");
-  $("calArea").classList.remove("hidden"); $("measureArea").classList.add("hidden");
+  $("calArea").classList.remove("hidden"); 
+  $("measureArea").classList.add("hidden");
   $("liveHUD").classList.add("hidden");
   $("snapBtn").classList.remove("hidden");
-  $("measureCount").textContent="0"; $("measureProgress").style.width="0%";
-  $("calState").textContent="Da fare"; $("poseState").textContent="Assente";
+  $("measureCount").textContent="0"; 
+  $("measureProgress").style.width="0%";
+  $("calState").textContent="Da fare"; 
+  $("poseState").textContent="Assente";
   $("accState").textContent="0%";
   setStatus("Inizializzazione fotocamera...");
 }
@@ -198,6 +201,7 @@ async function startCamera(){
     await video.play();
     videoBox.style.aspectRatio = video.videoWidth + " / " + video.videoHeight;
     running = true;
+    requestAnimationFrame(processVideoFrame);
     setStatus("Fotocamera attiva. Posiziona la carta ed esegui lo scatto.");
   }catch(e){
     setStatus("Errore fotocamera: " + e.message, "bad");
@@ -227,18 +231,17 @@ function initFaceMesh(){
   } else {
     $("engineState").textContent="Pronto";
   }
-  requestAnimationFrame(processVideoFrame);
 }
 
 async function processVideoFrame(){
   if(running && video.readyState >= 2 && !manual.active){
-    if(phase === 1 && faceMesh){
+    if(faceMesh){
       try {
         await faceMesh.send({image: video});
       } catch(e) {}
     }
   }
-  if(running) requestAnimationFrame(processVideoFrame);
+  if(running) rafId = requestAnimationFrame(processVideoFrame);
 }
 
 function onResults(results){
@@ -423,7 +426,7 @@ function enterFacePhase(){
   $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden");
   $("measureArea").classList.remove("hidden");
-  $("liveHUD").classList.remove("hidden");
+  $("liveHUD").classList.add("hidden");
   setStatus("Entra nel cerchio verde con il viso per avviare la scansione...","ok");
 }
 
