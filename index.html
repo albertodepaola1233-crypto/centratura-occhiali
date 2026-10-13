@@ -58,11 +58,10 @@ video{transform:scaleX(-1)}
 <section id="intro" class="card">
 <h1>Misurazione Centratura Occhiali Online</h1>
 <div class="warning">
-<b>💡 REGOLE DI ALLINEAMENTO E POSIZIONAMENTO</b>
+<b>💡 REGOLE DI ALLINEAMENTO E PROSSIMITÀ</b>
 <ul>
   <li><b>Fase 1 (Tessera):</b> Posiziona una carta standard (85.6 mm) aderente sotto il mento. Scatta la foto e tocca i due angoli estremi del lato lungo.</li>
-  <li><b>Fase 2 (Iride):</b> Rimuovi la carta. Il sistema attenderà che tu posizioni il viso <b>esattamente all'interno del cerchio verde</b> prima di avviare il calcolo di precisione.</li>
-  <li><b>Mantenimento dell'asse:</b> Una volta dentro il cerchio, non allontanarti e non avvicinarti alla fotocamera.</li>
+  <li><b>Fase 2 (Iride):</b> Rimuovi la carta e posiziona il viso all'interno del cerchio verde. <b>Se la scansione non parte, avvicinati o allontanati leggermente</b> finché il sistema non aggancia correttamente il volto.</li>
 </ul>
 </div>
 
@@ -79,7 +78,7 @@ In caso di problemi visivi o tolleranze errate dopo la ricezione dell'occhiale, 
 <section id="app" class="card hidden">
 <h2 id="title">Fase 1 — Calibrazione Scala Millimetrica</h2>
 <p id="instructions">Appoggia la carta sotto il mento (orizzontale) dentro il rettangolo blu e scatta la foto.</p>
-<div class="axisWarning">🚨 ATTENZIONE: Dopo aver toccato i punti, posizionati al centro del cerchio verde per far partire la scansione.</div>
+<div class="axisWarning">🚨 ATTENZIONE: Se la scansione non parte nella Fase 2, avvicinati o allontanati leggermente fino a entrare nel cerchio verde.</div>
 
 <div class="videoBox" id="videoBox">
   <video id="video" autoplay muted playsinline></video>
@@ -172,6 +171,11 @@ function resetState(){
   livePD=0; smoothPD=0; overlayLM=null;
   endManual();
   
+  // Pulisce completamente il canvas da qualsiasi residuo grafico precedente
+  if(canvas.width && canvas.height) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  
   $("title").textContent="Fase 1 — Calibrazione Scala Millimetrica";
   $("instructions").textContent="Appoggia la carta sotto il mento (orizzontale) dentro il rettangolo blu e scatta la foto.";
   $("cardGuide").classList.remove("hidden");
@@ -202,6 +206,7 @@ async function startCamera(){
 }
 
 function initFaceMesh(){
+  if(faceMesh) return; // Evita re-inizializzazioni multiple se si ripete la misura
   $("engineState").textContent="Caricamento";
   try{
     faceMesh = new FaceMesh({
@@ -243,7 +248,7 @@ function onResults(results){
   if(!results.multiFaceLandmarks || !results.multiFaceLandmarks.length){
     overlayLM = null;
     $("poseState").textContent = "Assente";
-    setStatus("Entra con il viso all'interno del cerchio verde guida.","bad");
+    setStatus("Avvicinati o allontanati finché il viso non rientra nel cerchio verde.","bad");
     return;
   }
 
@@ -252,18 +257,16 @@ function onResults(results){
 
   const p = i => ({x: lm[i].x * W, y: lm[i].y * H, z: (lm[i].z || 0) * W});
 
-  // CONTROLLO DI POSIZIONAMENTO NEL CERCHIO GUIDA (Controllo Baricentrico del Volto)
-  // Usiamo il punto nasale (1) come centro del viso
+  // Controllo baricentrico d'ingresso nel cerchio guida
   const nose = p(1);
   const centerX = W / 2;
   const centerY = H / 2;
-  const allowedRadius = W * 0.25; // Tolleranza di rientro nel cerchio guida centrale
+  const allowedRadius = W * 0.30; // Tolleranza ottimizzata per facilitare l'aggancio
 
   const distanceFromCenter = Math.hypot(nose.x - centerX, nose.y - centerY);
   if(distanceFromCenter > allowedRadius) {
     $("poseState").textContent = "Fuori Centro";
-    setStatus("Spostati al centro del cerchio verde per avviare la misurazione.","bad");
-    // Disegna comunque la mesh per feedback
+    setStatus("Avvicinati o spostati al centro del cerchio verde per avviare la scansione.","bad");
     drawFaceLive(lm, false);
     return;
   }
@@ -277,13 +280,13 @@ function onResults(results){
   const roll = Math.abs(Math.atan2(dy, dx) * (180 / Math.PI));
   const yaw = Math.abs(Math.atan2(dz, dx) * (180 / Math.PI));
 
-  if(roll > 4.5){
+  if(roll > 5.0){
     $("poseState").textContent = "Inclinato";
     setStatus("TESTA INCLINATA: Mantieni la testa dritta.","bad");
     drawFaceLive(lm, false);
     return;
   }
-  if(yaw > 6.0){
+  if(yaw > 7.0){
     $("poseState").textContent = "Ruotato";
     setStatus("TESTA RUOTATA: Guarda direttamente la fotocamera.","bad");
     drawFaceLive(lm, false);
@@ -323,13 +326,13 @@ function onResults(results){
     const acc = Math.min(100, Math.round((progress/MEASURE_REQUIRED)*100));
     $("accState").textContent = acc + "%";
 
-    setStatus("OTTIMO! Non muoverti, campionamento in corso...","ok");
+    setStatus("MISURAZIONE IN CORSO: Non muoverti, campionamento in corso...","ok");
 
     if(stableFrames >= MEASURE_REQUIRED && !finished){
       finishMeasurement();
     }
   } else {
-    setStatus("Mantieni la posizione fissa all'interno del cerchio.","bad");
+    setStatus("Avvicinati o allontanati leggermente per stabilizzare la misura.","bad");
   }
 }
 
@@ -427,12 +430,12 @@ function endManual(){
 function enterFacePhase(){
   phase = 1;
   $("title").textContent = "Fase 2 — Tracciamento Iride Live";
-  $("instructions").textContent = "Calibrazione riuscita. Posizionati all'interno del cerchio verde e resta immobile.";
+  $("instructions").textContent = "Calibrazione riuscita. Posizionati all'interno del cerchio verde (avvicinandoti o allontanandoti se necessario) e resta immobile.";
   $("cardGuide").classList.add("hidden");
   $("faceGuide").classList.remove("hidden");
   $("calArea").classList.add("hidden");
   $("measureArea").classList.remove("hidden");
-  $("liveHUD").classList.add("hidden");
+  $("liveHUD").classList.remove("hidden");
   setStatus("Entra nel cerchio verde con il viso per avviare la scansione...","ok");
 }
 
